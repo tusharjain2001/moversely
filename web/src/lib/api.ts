@@ -23,14 +23,21 @@ export function uploadVideo(
       try {
         const body = JSON.parse(xhr.responseText);
         if (xhr.status >= 200 && xhr.status < 300) resolve(body.job_id);
-        else reject(new Error(body.detail || `Upload failed (${xhr.status})`));
+        else reject(new Error(body.detail || uploadError(xhr.status)));
       } catch {
-        reject(new Error(`Upload failed (${xhr.status})`));
+        reject(new Error(uploadError(xhr.status)));
       }
     };
     xhr.onerror = () => reject(new Error("Couldn't reach the AI server. Check your connection and try again."));
     xhr.send(form);
   });
+}
+
+function uploadError(status: number): string {
+  if (status === 413) return "The video is too large. Please record a shorter clip (under a minute).";
+  if (status >= 500)
+    return "The upload didn't reach the AI server. Check your connection and try again, or record a shorter clip.";
+  return `Upload failed (error ${status}). Please try again.`;
 }
 
 export async function getJob(jobId: string): Promise<ApiJob | null> {

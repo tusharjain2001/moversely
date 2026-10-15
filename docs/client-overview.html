@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AI Room Survey - Prototype Overview</title>
+<style>
+  @page { size: Letter; margin: 0.9in; }
+  body { font-family: "Times New Roman", Times, serif; font-size: 12pt; line-height: 1.3; color: #000; }
+  h1 { font-size: 16pt; margin: 0 0 10pt; }
+  h2 { font-size: 13pt; margin: 14pt 0 5pt; }
+  p { margin: 0 0 6pt; }
+  ul, ol { margin: 0 0 6pt; padding-left: 20pt; }
+  li { margin-bottom: 3pt; }
+</style>
+</head>
+<body>
+<h1>AI Room Survey - Prototype Overview</h1>
+
+<p>We have a working prototype. A customer records a short video of a room on their phone, and the AI lists the furniture with sizes and the total shipment volume.</p>
+
+<h2>Where it stands today</h2>
+<ul>
+  <li>It works from start to finish, and anyone can test it on their phone through a link.</li>
+  <li>It runs on my laptop for now, so it is slow: about 2 minutes per room. On a cloud server it should take under a minute.</li>
+  <li>Sizes look realistic on what we have tested so far. Current estimate: a room's total is within about 20-25%.</li>
+  <li>The customer can fix any size, remove items, or add missed ones before getting a quote.</li>
+</ul>
+
+<h2>Our approach</h2>
+<ul>
+  <li>The customer uses their phone's browser. No app to download, and it works on any iPhone or Android.</li>
+  <li>The AI runs on a server, so even old phones work.</li>
+  <li>We use free open-source AI, not paid AI services, so there are no per-use AI fees.</li>
+</ul>
+
+<h2>How it works</h2>
+<ol>
+  <li>The customer records a 20-60 second video of the room, or uploads one.</li>
+  <li>The server takes about 5 frames per second from the video.</li>
+  <li><b>Find the items:</b> YOLOE-26 detects and outlines each piece of furniture from a list of about 40 household items (sofa, bed, wardrobe, table and so on). A tracker (BoT-SORT) follows each item from frame to frame so the same sofa is counted once.</li>
+  <li><b>Measure depth:</b> for the clearest views of each item, MoGe-2 (by Microsoft) estimates the real distance of every pixel in metres. This turns a normal photo into a 3D point cloud, with no special camera or LiDAR needed.</li>
+  <li><b>Get the size:</b> we find the floor, cut out each item's 3D points, and fit a box around them to get length, width and height. Results from several views are combined.</li>
+  <li><b>Check the result:</b> if a door is visible, its standard height (2.03 m) is used to correct the scale. Every size is checked against normal ranges for that item type.</li>
+  <li>The website shows the item list with sizes, volume in cubic feet, and the room total.</li>
+</ol>
+
+<h2>Tech stack</h2>
+<ul>
+  <li><b>AI models:</b> YOLOE-26 (Ultralytics) for detection and MoGe-2 (Microsoft) for depth. Both are open-source and run on our own server.</li>
+  <li><b>AI server:</b> Python, PyTorch, FastAPI, OpenCV, FFmpeg.</li>
+  <li><b>Website:</b> Next.js (React, TypeScript, Tailwind CSS), hosted on Vercel.</li>
+  <li><b>GPU hosting (planned):</b> Modal, a pay-per-second cloud GPU (Nvidia T4 or L4). We only pay while a video is being processed.</li>
+  <li><b>Right now:</b> my laptop's GPU (GTX 1650), shared through a Cloudflare link for testing.</li>
+</ul>
+
+<h2>What it will cost</h2>
+<ul>
+  <li>Testing now: $0.</li>
+  <li>Cloud AI: about 1-2 cents per room. The cloud provider gives $30 of free usage every month, which covers roughly 1,500 rooms (about 300 homes).</li>
+  <li>Website hosting: $20 a month.</li>
+  <li>AI token fees: none.</li>
+  <li>Licence: YOLOE-26 needs a paid Ultralytics licence for commercial use, or about 1 week of work to switch to a free alternative.</li>
+</ul>
+
+</body>
+</html>

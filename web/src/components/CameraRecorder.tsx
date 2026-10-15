@@ -79,7 +79,9 @@ export default function CameraRecorder({ roomName, onDone, onCancel, onUnsupport
     const stream = streamRef.current;
     if (!stream) return;
     const mimeType = pickMimeType();
-    const rec = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2_500_000 });
+    // 1.5 Mbps is plenty: the AI scales frames down to 960 px anyway, and a
+    // smaller file uploads faster on mobile data.
+    const rec = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 1_500_000 });
     chunksRef.current = [];
     rec.ondataavailable = (e) => e.data.size && chunksRef.current.push(e.data);
     rec.onstop = () => {
