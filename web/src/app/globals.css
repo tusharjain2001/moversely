@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #f6f4ef;
+  --card: #ffffff;
+  --ink: #16181d;
+  --muted: #6b6f78;
+  --line: #e2dfd7;
+  --chip: #eeebe4;
+  --tape: #f5c518; /* measuring-tape yellow */
+  --accent: #9a6b00;
+  --ok: #1f7a3f;
+  --ok-bg: #e3f3e8;
+  --warn: #8a5a00;
+  --warn-bg: #fdf0d2;
+  --bad: #b42318;
+  --bad-bg: #fde8e6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #121212;
+    --card: #1b1c1f;
+    --ink: #f2f0ea;
+    --muted: #9a9ca3;
+    --line: #2c2e33;
+    --chip: #24262a;
+    --accent: #f5c518;
+    --ok: #6fd394;
+    --ok-bg: #16301f;
+    --warn: #f2c35b;
+    --warn-bg: #33280f;
+    --bad: #ff8a80;
+    --bad-bg: #3a1714;
+  }
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Tick marks like a tape measure */
+.tape {
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgb(0 0 0 / 0.14) 0 1px,
+    transparent 1px 8px
+  );
+  background-size: 100% 6px;
+  background-repeat: no-repeat;
+  background-position: bottom;
+}
+
+.tape-mark {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--tape)
+    repeating-linear-gradient(90deg, rgb(0 0 0 / 0.55) 0 1.5px, transparent 1.5px 5px) bottom / 100% 7px no-repeat;
+}
