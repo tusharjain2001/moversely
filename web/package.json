@@ -10,6 +10,7 @@
     "sync:catalog": "node -e \"require('fs').copyFileSync('../ai/survey/catalog.json','src/data/catalog.json')\""
   },
   "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
     "next": "16.4.1",
     "react": "19.3.0",
     "react-dom": "19.3.0"

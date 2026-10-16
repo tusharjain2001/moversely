@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Room Survey",
-  description: "Record a short video of each room. AI finds your furniture, measures it in 3D and estimates your shipment volume.",
+  title: "AI Move Survey",
+  description:
+    "Record each room on your phone. AI measures your furniture, estimates your shipment volume and lists the customs documents for your route.",
 };
 
 export const viewport: Viewport = {

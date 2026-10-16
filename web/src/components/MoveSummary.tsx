@@ -62,11 +62,11 @@ function Summary({ move, from, to }: { move: MoveDetails; from: Country; to: Cou
       <section className="mt-5 rounded-3xl bg-[var(--ink)] p-6 text-[var(--paper)]">
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-lg font-semibold">
           <span>
-            {from.flag} {from.name}
+            {from.name}
           </span>
           <span className="opacity-50">→</span>
           <span>
-            {to.flag} {to.name}
+            {to.name}
           </span>
         </p>
         <p className="mt-1 text-sm opacity-70">

@@ -15,6 +15,9 @@
   --warn-bg: #fdf0d2;
   --bad: #b42318;
   --bad-bg: #fde8e6;
+  /* Dark feature surfaces that stay dark in both themes */
+  --night: #16181d;
+  --on-night: #f6f4ef;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -32,6 +35,8 @@
     --warn-bg: #33280f;
     --bad: #ff8a80;
     --bad-bg: #3a1714;
+    --night: #24262b;
+    --on-night: #f2f0ea;
   }
 }
 
@@ -45,6 +50,29 @@ body {
   color: var(--ink);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fade-up {
+    animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* Tick marks like a tape measure */
