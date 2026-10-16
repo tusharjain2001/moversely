@@ -1,0 +1,56 @@
+{
+  "slug": "new-zealand",
+  "name": "New Zealand",
+  "import": {
+    "updated": "26 Jun 2026",
+    "documents": [
+      "Unaccompanied Personal Baggage Declaration (NZCS218 and NZCS218A)",
+      "MPI Personal Effects Supplementary Declaration, filled in when packing",
+      "Inventory of goods",
+      "Passport copy (photo page and visa)",
+      "Proof of right to live in NZ, e.g. residence or 12-month+ work visa",
+      "Receipts for any new items",
+      "Prescription or doctor's letter for medicines"
+    ],
+    "dutyFree": [
+      "Used goods owned before you left, if you lived abroad for 21+ months",
+      "You must hold an eligible visa and goods must be for your own use",
+      "Cars owned and used 12+ months, if not sold within 24 months"
+    ],
+    "restricted": [
+      "Meat, honey, eggs, dairy, popcorn and most plant products are banned",
+      "Tobacco needs a Customs permit and is charged high duty and tax",
+      "Firearms need a NZ Police licence and import permit; pistols are banned",
+      "Garden tools, outdoor furniture and sports gear are checked for biosecurity",
+      "Mothballs containing naphthalene, camphor or dichlorobenzene are banned"
+    ],
+    "notes": [
+      "All shipments go through an approved facility; containers are not delivered to your door",
+      "Brand-new items must be declared and may attract duty and GST",
+      "Goods arriving over 5 years after you need Customs approval for duty-free entry",
+      "Wooden packaging must carry the ISPM 15 mark"
+    ]
+  },
+  "export": {
+    "updated": "26 Jun 2026",
+    "documents": [
+      "Copy of passport and visa page",
+      "Inventory, or list of boxes you packed yourself",
+      "Customs forms required by the destination country",
+      "List of any alcohol and electronic items",
+      "Signed service contract with your contact details",
+      "Insurance documents",
+      "For a car: registration, purchase invoice and odometer reading"
+    ],
+    "dutyFree": [],
+    "restricted": [
+      "Batteries for e-bikes, e-scooters and hoverboards cannot be exported",
+      "Electric vehicles cannot be exported",
+      "Other batteries are only taken if the carrier and port agree"
+    ],
+    "notes": [
+      "No special export clearance for used goods or cars beyond these documents",
+      "Car owners must approve battery disconnection and fuel draining if needed"
+    ]
+  }
+}

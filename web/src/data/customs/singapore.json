@@ -1,0 +1,45 @@
+{
+  "slug": "singapore",
+  "name": "Singapore",
+  "import": {
+    "updated": "25 Nov 2025",
+    "documents": [
+      "Packing inventory written in English",
+      "Copy of the bill of lading or air waybill",
+      "Copy of the passport photo and details pages",
+      "Employment Pass (front and back), issued within the last 6 months",
+      "Or Ministry of Manpower approval letter plus employer letter",
+      "Citizens and PRs: NRIC copy, plus Re-Entry Permit copy for PRs",
+      "Citizens and PRs: proof you worked outside Singapore"
+    ],
+    "dutyFree": [
+      "GST relief on used personal goods if claimed within 6 months of arrival",
+      "Returning citizens and PRs: GST relief after more than 6 months abroad",
+      "Without relief, 9% GST is charged on the used value of the goods"
+    ],
+    "restricted": [
+      "Banned: firearms, air guns, martial arts weapons, drugs and radio transmitters",
+      "Banned: chewing gum, e-cigarettes, chewing tobacco, shisha and fireworks",
+      "Alcohol must be listed in detail and pays duty, GST and a permit fee",
+      "Decorative swords and knives need a permit from the Arms and Explosives authority",
+      "Cars are strongly discouraged: very high duties and cars over 3 years old are banned"
+    ],
+    "notes": [
+      "You do not need to be in Singapore if paperwork is sent in advance",
+      "You can clear goods without an Employment Pass if you pay GST",
+      "Clearance usually takes 2 to 5 working days depending on shipment type",
+      "Videos and discs may be screened for a fee; list every title"
+    ]
+  },
+  "export": {
+    "updated": "25 Nov 2025",
+    "documents": [
+      "Copy of the passport photo page"
+    ],
+    "dutyFree": [],
+    "restricted": [
+      "Used batteries, especially lithium e-bike batteries, cannot be shipped by sea or air"
+    ],
+    "notes": []
+  }
+}

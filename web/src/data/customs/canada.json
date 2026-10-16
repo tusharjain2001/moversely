@@ -1,0 +1,53 @@
+{
+  "slug": "canada",
+  "name": "Canada",
+  "import": {
+    "updated": "1 Jan 2026",
+    "documents": [
+      "Passport",
+      "Visa, PR confirmation or PR card (new residents)",
+      "Proof you lived abroad 12+ months (returning Canadians)",
+      "Itemised list in English or French, values in Canadian dollars",
+      "BSF186 personal effects form, plus BSF186A list",
+      "Any papers stamped by border officers when you arrived",
+      "Liquor import declaration, if bringing alcohol",
+      "Arrival notice from your Canadian moving company"
+    ],
+    "dutyFree": [
+      "New residents: goods you owned and used before arriving in Canada",
+      "Returning residents: goods owned and used 6+ months, after 12+ months away",
+      "Antiques over 100 years old and art in a genuine household move"
+    ],
+    "restricted": [
+      "Cars must meet Canadian standards; used foreign vehicles are often not allowed",
+      "Alcohol is taxed, rules vary by province, and extra amounts need a permit",
+      "Firearms must be declared and usually need a licence; check before shipping",
+      "Plants, soil and meat are banned or tightly controlled; avoid shipping food",
+      "New, never-used items may be charged duty; keep receipts"
+    ],
+    "notes": [
+      "You must report to border officers on arrival and declare goods to follow",
+      "Get your BSF186 stamped at entry, or you may pay duty and tax",
+      "List any later shipments now so they can also come in duty free",
+      "Any single item worth over CAD 10,000 is taxed on the amount above that"
+    ]
+  },
+  "export": {
+    "updated": "1 Jan 2026",
+    "documents": [
+      "Passport copy",
+      "Inventory with number of pieces",
+      "Weight declaration",
+      "For a car: make, model, year and VIN"
+    ],
+    "dutyFree": [],
+    "restricted": [
+      "Vehicles need a B-13 export declaration filed by your mover",
+      "Car fuel must be at 1/8 tank or less when loaded",
+      "Vehicles must meet the destination country's import rules"
+    ],
+    "notes": [
+      "No export customs declaration is needed for household goods"
+    ]
+  }
+}

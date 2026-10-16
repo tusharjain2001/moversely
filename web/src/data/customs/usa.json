@@ -1,0 +1,52 @@
+{
+  "slug": "usa",
+  "name": "United States",
+  "import": {
+    "updated": "11 Oct 2023",
+    "documents": [
+      "Passport copy",
+      "Visa copy, plus stamped I-94 for non-residents if applicable",
+      "U.S. Customs Form 3299 (importer's declaration)",
+      "Supplemental declaration for unaccompanied household effects",
+      "Detailed inventory in English, with no 'miscellaneous' entries",
+      "Power of attorney for your customs broker",
+      "Ocean bill of lading or air waybill in your own name"
+    ],
+    "dutyFree": [
+      "Used household goods you owned and used abroad for at least 1 year",
+      "Antiques 100+ years old, or art owned 1+ year for personal use",
+      "Silverware and ornaments shipped with normal household goods"
+    ],
+    "restricted": [
+      "Items owned under 1 year must be listed separately and may pay duty",
+      "Vehicles need broker approval first; non-US-standard vehicles shouldn't be shipped",
+      "Firearms need an ATF import permit first and must ship separately",
+      "Plants, seeds, ivory and pornography are banned; food is discouraged and needs FDA notice",
+      "Alcohol is discouraged: some states ban it, others require permits and duty"
+    ],
+    "notes": [
+      "You must be in the US by the time your goods arrive",
+      "An ISF filing is needed at least 24 hours before the ship loads",
+      "Shipping papers must name you, not the moving agent, as the receiver",
+      "Prescription medicines are fine with a doctor's prescription, up to 3-6 months' supply"
+    ]
+  },
+  "export": {
+    "updated": "11 Jun 2024",
+    "documents": [
+      "Clear passport copy",
+      "EIN number if you hold a US passport (not needed for air)",
+      "For a car: original vehicle title with no loan on it",
+      "For a financed car: notarised export approval letter from the lender",
+      "Power of attorney, depending on the port (mainly for cars)"
+    ],
+    "dutyFree": [],
+    "restricted": [
+      "Vehicles can only be exported with the original, lien-free title",
+      "A car with an outstanding loan needs the lender's written, notarised consent"
+    ],
+    "notes": [
+      "Requirements vary by port, so check with US Customs at your departure port"
+    ]
+  }
+}

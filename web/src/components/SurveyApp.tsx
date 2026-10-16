@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import Link from "next/link";
+import { useState } from "react";
+import { useIsClient } from "@/lib/move";
 import type { Room, Units } from "@/lib/types";
 import { useSurvey } from "@/lib/useSurvey";
 import { M3_TO_FT3, formatVolume, itemVolumeM3, shippingGuide } from "@/lib/units";
 import RoomSheet from "./RoomSheet";
+import StepHeader from "./StepHeader";
 
-const roomVolume = (r: Room) => r.items.reduce((s, it) => s + itemVolumeM3(it), 0);
+export const roomVolume = (r: Room) => r.items.reduce((s, it) => s + itemVolumeM3(it), 0);
 
 function downloadCsv(rooms: Room[]) {
   const rows = [["Room", "Item", "Qty", "Length (in)", "Depth (in)", "Height (in)", "Volume (ft3)", "Confidence"]];
@@ -27,14 +30,12 @@ function downloadCsv(rooms: Room[]) {
   URL.revokeObjectURL(url);
 }
 
-const noop = () => () => {};
-
 /**
  * The survey lives in the browser (localStorage), so it renders only on the
  * client; the server sends a light placeholder.
  */
 export default function SurveyApp() {
-  const isClient = useSyncExternalStore(noop, () => true, () => false);
+  const isClient = useIsClient();
   return isClient ? <Survey /> : <div className="min-h-dvh" />;
 }
 
@@ -51,13 +52,7 @@ function Survey() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 pb-16 pt-[max(1.25rem,env(safe-area-inset-top))]">
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="tape-mark" aria-hidden />
-          <span className="font-semibold tracking-tight">AI Room Survey</span>
-        </div>
-        <UnitToggle units={units} onChange={setUnits} />
-      </header>
+      <StepHeader step={1} right={<UnitToggle units={units} onChange={setUnits} />} />
 
       <section className="mt-6 rounded-3xl bg-[var(--ink)] p-6 text-[var(--paper)]">
         <p className="text-sm opacity-70">Estimated shipment volume</p>
@@ -139,6 +134,15 @@ function Survey() {
           </button>
         </section>
       )}
+
+      <nav className="mt-8 flex items-center justify-between gap-3">
+        <Link href="/" className="rounded-full border border-[var(--line)] px-5 py-3 text-sm font-medium">
+          ← Back
+        </Link>
+        <Link href="/summary" className="rounded-full bg-[var(--ink)] px-6 py-3 text-sm font-semibold text-[var(--paper)]">
+          Next: documents →
+        </Link>
+      </nav>
 
       <footer className="mt-10 text-xs leading-relaxed text-[var(--muted)]">
         Sizes are AI estimates from your video. Items marked “Check size” or “Estimate” are worth a quick look before booking.

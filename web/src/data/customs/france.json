@@ -1,0 +1,50 @@
+{
+  "slug": "france",
+  "name": "France",
+  "import": {
+    "updated": "1 Jan 2026",
+    "documents": [
+      "Passport copy",
+      "Detailed inventory in French, valued in euros, dated and signed",
+      "Signed certificate that goods will not be resold",
+      "Employer letter showing your job abroad and transfer date",
+      "French nationals: consulate certificate of change of residence",
+      "Proof of French address, e.g. utility bill or lease, max 3 months old",
+      "Signed duty-exemption declaration, form Cerfa No. 10070*03"
+    ],
+    "dutyFree": [
+      "You lived outside the EU for at least 12 months",
+      "Belongings and vehicles used by you for at least 6 months",
+      "Goods arrive within 12 months of your move to France"
+    ],
+    "restricted": [
+      "Alcohol pays duty and needs its own inventory with type, value and strength",
+      "Tobacco pays duty and is limited",
+      "Not allowed: lithium batteries, e-bikes and e-scooters, live plants, dried flowers, fresh fruit",
+      "Medicines need Health Ministry approval; firearms need a customs import permit",
+      "Cars need the original title in your name (no leased cars) and proof VAT was paid"
+    ],
+    "notes": [
+      "Keep the goods for at least 12 months after they arrive",
+      "If you ship in several loads, list everything on the first inventory",
+      "Someone else can handle the customs steps for you with your authorisation",
+      "Avoid packing any food"
+    ]
+  },
+  "export": {
+    "updated": "1 Jan 2026",
+    "documents": [
+      "Passport",
+      "Detailed, valued inventory (separate lists for sea and air)",
+      "Employer transfer letter or certificate of change of residence",
+      "Original receipts for items bought within the last 2 months"
+    ],
+    "dutyFree": [],
+    "restricted": [
+      "Vehicles need original registration papers and a non-sale certificate under one month old"
+    ],
+    "notes": [
+      "Also prepare whatever documents your destination country requires"
+    ]
+  }
+}

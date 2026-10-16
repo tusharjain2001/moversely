@@ -1,0 +1,37 @@
+{
+  "slug": "uk",
+  "name": "United Kingdom",
+  "import": {
+    "updated": "1 Jan 2026",
+    "documents": [
+      "Passport copy (photo page)",
+      "Visa or proof of immigration status (non-UK citizens)",
+      "HMRC Transfer of Residence (ToR1) approval letter with its URN",
+      "Signed, complete inventory in English, with no vague entries",
+      "Proof you lived abroad for the past 12 months (bill, bank statement, lease)",
+      "Proof of why you're moving, e.g. job offer or UK rental contract",
+      "Your UK address (a temporary one is fine)",
+      "Copy of the bill of lading or air waybill"
+    ],
+    "dutyFree": [
+      "Used belongings you owned and used abroad for at least 6 months",
+      "You must have lived outside the UK for at least 12 months",
+      "Goods must arrive within 12 months of your move and not be sold for 12 months",
+      "Cars and motorbikes qualify on the same terms under the same application"
+    ],
+    "restricted": [
+      "Alcohol and tobacco always pay duty and VAT; list them on the ToR1",
+      "Banned: meat, fish and dairy foods, unlicensed drugs, offensive weapons, fake goods",
+      "Firearms, ammunition, explosives and radio transmitters usually need a licence",
+      "Ivory, furs, reptile skin and other endangered-species items need a CITES permit",
+      "Pets need a microchip and rabies vaccine; unapproved countries mean 6-month quarantine"
+    ],
+    "notes": [
+      "Apply online to HMRC for Transfer of Residence relief as early as possible",
+      "Don't ship until HMRC approves; give the URN to your mover before arrival",
+      "Approval can take from one day to several weeks",
+      "Alcohol, tobacco and items owned under 6 months are cleared separately"
+    ]
+  },
+  "export": null
+}

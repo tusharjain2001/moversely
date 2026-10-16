@@ -1,0 +1,56 @@
+{
+  "slug": "australia",
+  "name": "Australia",
+  "import": {
+    "updated": "9 Apr 2026",
+    "documents": [
+      "Bill of lading or air waybill",
+      "Form B534, fully filled in and signed on every page",
+      "Passport photo page and signature page copy",
+      "Visa copy, or visa grant letter if no visa label",
+      "Contents list in English, including boxes you packed yourself",
+      "Your full home address in Australia (no PO box or work address)",
+      "Travel itinerary if you land after the ship arrives"
+    ],
+    "dutyFree": [
+      "Personal effects of citizens or long-stay/permanent visa holders who lived abroad 12+ months",
+      "Goods must arrive within 6 months of your own arrival",
+      "Antiques over 100 years old are duty free, but 10% GST applies"
+    ],
+    "restricted": [
+      "Cars need a Vehicle Import Approval before shipping; duty and 10% GST apply",
+      "Do not pack meat, dairy, eggs, seeds, herbs or spices",
+      "Clean bikes, garden tools, camping and sports gear of all soil and plant matter",
+      "Tobacco needs a Home Affairs permit; alcohol is charged high duty and GST",
+      "Firearms need state police approval and a permit before shipping"
+    ],
+    "notes": [
+      "Every household shipment gets a biosecurity inspection, with fees and possible delays",
+      "Full containers cannot be delivered straight to your home because of the inspection",
+      "Your goods can be cleared before you arrive in Australia",
+      "Scanned forms are fine, but electronic signatures are not accepted"
+    ]
+  },
+  "export": {
+    "updated": "1 Jan 2026",
+    "documents": [
+      "Signed copy of your passport photo page",
+      "Packing list with number of packages",
+      "Delivery address at destination",
+      "Your departure date",
+      "Statutory declaration of no dangerous goods (air shipments)",
+      "Car registration and proof of ownership (if shipping a vehicle)"
+    ],
+    "dutyFree": [],
+    "restricted": [
+      "E-bikes, e-scooters and hoverboards cannot be exported",
+      "Electric and hybrid cars cannot go in containers; roll-on/roll-off space is scarce",
+      "No lithium batteries at all in air shipments",
+      "By sea, battery items must be 100 Wh or less, with the rating known"
+    ],
+    "notes": [
+      "Export papers must use exactly the same name as your passport",
+      "Check battery ratings on vacuums, power tools and gadgets before packing"
+    ]
+  }
+}

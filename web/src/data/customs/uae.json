@@ -1,0 +1,46 @@
+{
+  "slug": "uae",
+  "name": "United Arab Emirates",
+  "import": {
+    "updated": "5 Feb 2025",
+    "documents": [
+      "Passport copy",
+      "Valid UAE residence visa",
+      "Emirates ID",
+      "Copy of the inventory or packing list",
+      "Original or express-release bill of lading",
+      "Signed letter letting your mover clear and collect the shipment",
+      "Signed letter asking the shipping line to release the delivery order"
+    ],
+    "dutyFree": [
+      "Used household goods and personal belongings enter without duty"
+    ],
+    "restricted": [
+      "Banned: weapons, real or decorative firearms, swords, ammunition and fireworks",
+      "Banned: alcohol, narcotics and large amounts of medicine, even with a prescription",
+      "Banned: radio transmitters, adult material, gambling items and some religious or political books",
+      "Books, films, photos and other media are checked by authorities first",
+      "Drones need a civil aviation licence; plants, seeds and fresh fruit may be destroyed"
+    ],
+    "notes": [
+      "New items pay 5% duty on their value, plus 5% VAT and fees",
+      "A UAE residence visa is required before customs will clear your goods",
+      "Most shipments are X-rayed or opened, with extra handling fees",
+      "Pack books, CDs and DVDs in their own clearly marked boxes",
+      "Keep receipts for new items, or customs will set the value and may charge a USD 300 fee"
+    ]
+  },
+  "export": {
+    "updated": "6 Feb 2025",
+    "documents": [
+      "Passport copy",
+      "UAE visa",
+      "Emirates ID"
+    ],
+    "dutyFree": [],
+    "restricted": [
+      "Drones cannot be shipped with personal belongings"
+    ],
+    "notes": []
+  }
+}

@@ -1,5 +1,5 @@
-import SurveyApp from "@/components/SurveyApp";
+import MoveForm from "@/components/MoveForm";
 
 export default function Home() {
-  return <SurveyApp />;
+  return <MoveForm />;
 }
