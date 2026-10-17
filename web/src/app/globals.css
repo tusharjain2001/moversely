@@ -198,6 +198,20 @@ html {
   }
 }
 
+/* iOS Safari gives date inputs a fixed minimum width and its own height, so
+   in a two-column row they spill into the next field. */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 46px;
+}
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
 /* Tick marks like a tape measure */
 .tape {
   background-image: repeating-linear-gradient(

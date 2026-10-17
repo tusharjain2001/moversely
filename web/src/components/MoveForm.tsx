@@ -9,7 +9,7 @@ import { MOVE_TYPES, type MoveDetails, loadMove, saveMove, useIsClient } from "@
 const EMPTY: MoveDetails = { name: "", email: "", phone: "", from: "", to: "", date: "", moveType: "full" };
 
 const inputClass =
-  "mt-1.5 w-full rounded-xl border border-[var(--line)] bg-[var(--paper)] px-3 py-2.5 text-base text-[var(--ink)] outline-none transition focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25";
+  "mt-1.5 w-full min-w-0 rounded-xl border border-[var(--line)] bg-[var(--paper)] px-3 py-2.5 text-base text-[var(--ink)] outline-none transition focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25";
 
 /** The move-details form: step 1 of the flow, shown in the landing page hero. */
 export default function MoveForm() {
@@ -53,7 +53,7 @@ function Form() {
       <p className="mt-1 text-sm text-[var(--muted)]">Step 1 of 3. Takes under a minute.</p>
 
       <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3.5 sm:mt-5 sm:gap-x-4 sm:gap-y-4">
-        <label className="block text-sm font-medium">
+        <label className="block min-w-0 text-sm font-medium">
           Moving from
           <select value={move.from} onChange={(e) => set("from", e.target.value)} className={inputClass}>
             <option value="">Select</option>
@@ -64,7 +64,7 @@ function Form() {
             ))}
           </select>
         </label>
-        <label className="block text-sm font-medium">
+        <label className="block min-w-0 text-sm font-medium">
           Moving to
           <select value={move.to} onChange={(e) => set("to", e.target.value)} className={inputClass}>
             <option value="">Select</option>
@@ -94,11 +94,11 @@ function Form() {
             ))}
           </div>
         </fieldset>
-        <label className="block text-sm font-medium">
+        <label className="block min-w-0 text-sm font-medium">
           Moving date
           <input type="date" min={today} value={move.date} onChange={(e) => set("date", e.target.value)} className={inputClass} />
         </label>
-        <label className="block text-sm font-medium">
+        <label className="block min-w-0 text-sm font-medium">
           Phone
           <input type="tel" value={move.phone} onChange={(e) => set("phone", e.target.value)} autoComplete="tel" className={inputClass} />
         </label>
