@@ -1,43 +1,66 @@
 @import "tailwindcss";
 
+/* Brand: deep teal with a warm orange highlight (as on the client's
+   moving-to-usa site). */
 :root {
-  --paper: #f6f4ef;
+  --paper: #f3f7f7;
   --card: #ffffff;
-  --ink: #16181d;
-  --muted: #6b6f78;
-  --line: #e2dfd7;
-  --chip: #eeebe4;
-  --tape: #f5c518; /* measuring-tape yellow */
-  --accent: #9a6b00;
+  --ink: #10292b;
+  --muted: #557073;
+  --line: #d6e4e4;
+  --chip: #e5efef;
+  --primary: #077d7d;
+  --on-primary: #ffffff;
+  --tape: #f59024; /* highlight orange, also the logo's tape */
+  --accent: #077d7d;
   --ok: #1f7a3f;
   --ok-bg: #e3f3e8;
   --warn: #8a5a00;
   --warn-bg: #fdf0d2;
   --bad: #b42318;
   --bad-bg: #fde8e6;
-  /* Dark feature surfaces that stay dark in both themes */
-  --night: #16181d;
-  --on-night: #f6f4ef;
+  /* Feature panels stay dark teal in both themes */
+  --night-a: #0a3637;
+  --night-b: #0e5a5b;
+  --on-night: #eef7f6;
+  --glow-a: rgb(8 152 152 / 0.16);
+  --glow-b: rgb(245 144 36 / 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #121212;
-    --card: #1b1c1f;
-    --ink: #f2f0ea;
-    --muted: #9a9ca3;
-    --line: #2c2e33;
-    --chip: #24262a;
-    --accent: #f5c518;
+    --paper: #0a1617;
+    --card: #102224;
+    --ink: #e7f1f0;
+    --muted: #8ea8a9;
+    --line: #1e3537;
+    --chip: #172c2e;
+    --primary: #19b5b5;
+    --on-primary: #03201f;
+    --tape: #f79a35;
+    --accent: #4fd0cf;
     --ok: #6fd394;
     --ok-bg: #16301f;
     --warn: #f2c35b;
     --warn-bg: #33280f;
     --bad: #ff8a80;
     --bad-bg: #3a1714;
-    --night: #24262b;
-    --on-night: #f2f0ea;
+    --night-a: #0d2e30;
+    --night-b: #11494a;
+    --on-night: #e7f1f0;
+    --glow-a: rgb(25 181 181 / 0.14);
+    --glow-b: rgb(247 154 53 / 0.07);
   }
+}
+
+.night-panel {
+  background: linear-gradient(135deg, var(--night-a), var(--night-b));
+}
+
+.hero-glow {
+  background:
+    radial-gradient(60% 70% at 85% 10%, var(--glow-a), transparent 70%),
+    radial-gradient(45% 60% at 0% 100%, var(--glow-b), transparent 70%);
 }
 
 @theme inline {

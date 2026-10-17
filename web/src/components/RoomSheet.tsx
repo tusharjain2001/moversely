@@ -73,7 +73,7 @@ export default function RoomSheet({ room, units, survey, onClose }: Props) {
             )}
             <button
               onClick={() => setCamera(true)}
-              className="flex w-full items-center gap-4 rounded-2xl bg-[var(--ink)] p-5 text-left text-[var(--paper)]"
+              className="flex w-full items-center gap-4 rounded-2xl bg-[var(--primary)] p-5 text-left text-[var(--on-primary)]"
             >
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--tape)] text-2xl text-black">
                 â—
@@ -144,7 +144,7 @@ export default function RoomSheet({ room, units, survey, onClose }: Props) {
                         survey.addItem(room.id, c);
                         setAdding(false);
                       }}
-                      className="rounded-full border border-[var(--line)] px-3 py-1.5 text-sm hover:border-[var(--ink)]"
+                      className="rounded-full border border-[var(--line)] px-3 py-1.5 text-sm hover:border-[var(--primary)]"
                     >
                       {c.label}
                     </button>
@@ -154,7 +154,7 @@ export default function RoomSheet({ room, units, survey, onClose }: Props) {
             ) : (
               <button
                 onClick={() => setAdding(true)}
-                className="w-full rounded-2xl border border-dashed border-[var(--line)] p-4 text-sm font-medium text-[var(--muted)] hover:border-[var(--ink)] hover:text-[var(--ink)]"
+                className="w-full rounded-2xl border border-dashed border-[var(--line)] p-4 text-sm font-medium text-[var(--muted)] hover:border-[var(--primary)] hover:text-[var(--ink)]"
               >
                 + Add an item the camera missed (boxes, lampsâ€¦)
               </button>
@@ -169,7 +169,7 @@ export default function RoomSheet({ room, units, survey, onClose }: Props) {
             <button onClick={onClose} className="rounded-full border border-[var(--line)] px-5 py-3 text-sm font-medium">
               â† All rooms
             </button>
-            <Link href="/summary" className="rounded-full bg-[var(--ink)] px-6 py-3 text-sm font-semibold text-[var(--paper)]">
+            <Link href="/summary" className="rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--on-primary)]">
               Next: documents â†’
             </Link>
           </div>

@@ -9,7 +9,7 @@ import { MOVE_TYPES, type MoveDetails, loadMove, saveMove, useIsClient } from "@
 const EMPTY: MoveDetails = { name: "", email: "", phone: "", from: "", to: "", date: "", moveType: "full" };
 
 const inputClass =
-  "mt-1.5 w-full rounded-xl border border-[var(--line)] bg-[var(--paper)] px-3 py-2.5 text-base text-[var(--ink)] outline-none transition focus:border-[var(--ink)] focus:ring-2 focus:ring-[var(--tape)]/40";
+  "mt-1.5 w-full rounded-xl border border-[var(--line)] bg-[var(--paper)] px-3 py-2.5 text-base text-[var(--ink)] outline-none transition focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25";
 
 /** The move-details form: step 1 of the flow, shown in the landing page hero. */
 export default function MoveForm() {
@@ -85,7 +85,7 @@ function Form() {
                 aria-pressed={move.moveType === t.value}
                 onClick={() => set("moveType", t.value)}
                 className={`rounded-lg px-1 py-1.5 text-xs font-medium leading-tight transition ${
-                  move.moveType === t.value ? "bg-[var(--ink)] text-[var(--paper)]" : "text-[var(--muted)] hover:text-[var(--ink)]"
+                  move.moveType === t.value ? "bg-[var(--primary)] text-[var(--on-primary)]" : "text-[var(--muted)] hover:text-[var(--ink)]"
                 }`}
               >
                 {t.label}
@@ -123,7 +123,7 @@ function Form() {
         </p>
       )}
 
-      <button className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--ink)] px-6 py-3.5 font-semibold text-[var(--paper)] transition hover:opacity-90 active:scale-[0.98]">
+      <button className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3.5 font-semibold text-[var(--on-primary)] transition hover:opacity-90 active:scale-[0.98]">
         Next: scan your rooms <ArrowRight size={18} weight="bold" />
       </button>
     </form>

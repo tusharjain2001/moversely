@@ -54,7 +54,7 @@ function Survey() {
     <div className="mx-auto w-full max-w-2xl px-4 pb-16 pt-[max(1.25rem,env(safe-area-inset-top))]">
       <StepHeader step={1} right={<UnitToggle units={units} onChange={setUnits} />} />
 
-      <section className="mt-6 rounded-3xl bg-[var(--ink)] p-6 text-[var(--paper)]">
+      <section className="mt-6 night-panel rounded-3xl p-6 text-[var(--on-night)]">
         <p className="text-sm opacity-70">Estimated shipment volume</p>
         <p className="mt-1 text-5xl font-semibold tabular-nums tracking-tight">{formatVolume(total, units)}</p>
         <p className="mt-1 text-sm opacity-70">
@@ -90,7 +90,7 @@ function Survey() {
             <li key={r.id}>
               <button
                 onClick={() => setOpenId(r.id)}
-                className="flex h-full min-h-28 w-full flex-col justify-between rounded-2xl border border-[var(--line)] bg-[var(--card)] p-4 text-left transition hover:border-[var(--ink)]"
+                className="flex h-full min-h-28 w-full flex-col justify-between rounded-2xl border border-[var(--line)] bg-[var(--card)] p-4 text-left transition hover:border-[var(--primary)]"
               >
                 <span className="font-semibold">{r.name}</span>
                 <RoomStatus room={r} units={units} />
@@ -123,7 +123,7 @@ function Survey() {
 
       {itemCount > 0 && (
         <section className="mt-6 flex flex-wrap gap-2">
-          <button onClick={() => downloadCsv(rooms)} className="rounded-full bg-[var(--ink)] px-4 py-2.5 text-sm font-medium text-[var(--paper)]">
+          <button onClick={() => downloadCsv(rooms)} className="rounded-full bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-[var(--on-primary)]">
             Download inventory (CSV)
           </button>
           <button
@@ -139,7 +139,7 @@ function Survey() {
         <Link href="/" className="rounded-full border border-[var(--line)] px-5 py-3 text-sm font-medium">
           ← Back
         </Link>
-        <Link href="/summary" className="rounded-full bg-[var(--ink)] px-6 py-3 text-sm font-semibold text-[var(--paper)]">
+        <Link href="/summary" className="rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--on-primary)]">
           Next: documents →
         </Link>
       </nav>
@@ -185,7 +185,7 @@ function UnitToggle({ units, onChange }: { units: Units; onChange: (u: Units) =>
           key={u}
           onClick={() => onChange(u)}
           aria-pressed={units === u}
-          className={`rounded-full px-3 py-1.5 ${units === u ? "bg-[var(--ink)] text-[var(--paper)]" : "text-[var(--muted)]"}`}
+          className={`rounded-full px-3 py-1.5 ${units === u ? "bg-[var(--primary)] text-[var(--on-primary)]" : "text-[var(--muted)]"}`}
         >
           {u === "imperial" ? "ft / in" : "m / cm"}
         </button>

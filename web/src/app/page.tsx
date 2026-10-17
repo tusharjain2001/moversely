@@ -76,7 +76,7 @@ export default function Home() {
           </nav>
           <a
             href="#start"
-            className="rounded-full bg-[var(--ink)] px-4 py-2 text-sm font-semibold text-[var(--paper)] transition hover:opacity-90 active:scale-[0.98]"
+            className="rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--on-primary)] transition hover:opacity-90 active:scale-[0.98]"
           >
             Get started
           </a>
@@ -85,10 +85,11 @@ export default function Home() {
 
       <main>
         {/* Hero: the client wants the form on the first screen. */}
+        <div className="hero-glow">
         <section className="mx-auto grid max-w-6xl gap-10 px-4 pb-16 pt-10 sm:px-6 lg:grid-cols-[1fr_minmax(0,480px)] lg:items-center lg:gap-16 lg:pt-16">
           <div className="fade-up">
             <h1 className="text-4xl font-semibold leading-[1.05] tracking-tighter sm:text-5xl lg:text-6xl">
-              Measure your home with your phone.
+              Measure your home <span className="text-[var(--primary)]">with your phone.</span>
             </h1>
             <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-[var(--muted)]">
               Record each room on your phone. AI measures your furniture and lists the customs documents for your route.
@@ -104,6 +105,7 @@ export default function Home() {
             <MoveForm />
           </div>
         </section>
+        </div>
 
         <section aria-label="Countries covered" className="border-y border-[var(--line)] bg-[var(--card)]">
           <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6 sm:px-6 md:flex-row md:items-center md:gap-8">
@@ -141,7 +143,7 @@ export default function Home() {
         <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6 md:pb-28">
           <h2 className="max-w-[20ch] text-3xl font-semibold tracking-tight sm:text-4xl">No home visit. No tape measure. No guesswork.</h2>
           <div className="mt-10 grid gap-3 md:grid-cols-6">
-            <div className="flex min-h-64 flex-col justify-between rounded-3xl bg-[var(--night)] p-7 text-[var(--on-night)] md:col-span-4">
+            <div className="flex min-h-64 flex-col justify-between rounded-3xl night-panel p-7 text-[var(--on-night)] md:col-span-4">
               <Cube size={32} weight="duotone" />
               <div>
                 <h3 className="text-2xl font-semibold tracking-tight">Measured in 3D, not guessed</h3>
@@ -215,7 +217,7 @@ export default function Home() {
         </section>
 
         <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
-          <div className="tape flex flex-col items-start justify-between gap-6 rounded-3xl bg-[var(--night)] p-8 text-[var(--on-night)] sm:p-12 md:flex-row md:items-center">
+          <div className="night-panel flex flex-col items-start justify-between gap-6 rounded-3xl p-8 text-[var(--on-night)] sm:p-12 md:flex-row md:items-center">
             <div>
               <h2 className="text-3xl font-semibold tracking-tight">Plan your move tonight</h2>
               <p className="mt-2 opacity-70">Start with your route. Scan your rooms whenever you are ready.</p>
@@ -261,7 +263,7 @@ function Tile({ icon, title, children }: { icon: ReactNode; title: string; child
 function PhoneShot({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
   return (
     <div className={`relative mx-auto w-full max-w-[340px] ${className}`}>
-      <div className="absolute -inset-6 -z-10 rounded-[3rem] bg-[var(--tape)]/25 blur-2xl" aria-hidden />
+      <div className="absolute -inset-6 -z-10 rounded-[3rem] bg-[var(--primary)]/20 blur-3xl" aria-hidden />
       <div className="overflow-hidden rounded-[2.5rem] border-[10px] border-[#16181d] bg-[#16181d] shadow-[0_30px_80px_-30px_rgb(22_24_29/0.5)]">
         <Image src={src} alt={alt} width={1040} height={1400} sizes="340px" className="h-auto w-full rounded-[1.75rem]" />
       </div>

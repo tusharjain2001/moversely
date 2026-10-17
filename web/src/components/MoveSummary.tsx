@@ -25,7 +25,7 @@ function MissingMove() {
       <div className="mt-10 rounded-3xl border border-[var(--line)] bg-[var(--card)] p-6 text-center">
         <p className="font-semibold">Tell us about your move first</p>
         <p className="mt-1 text-sm text-[var(--muted)]">We need your “moving from” and “moving to” countries to show the right documents.</p>
-        <Link href="/" className="mt-5 inline-block rounded-full bg-[var(--ink)] px-6 py-3 text-sm font-semibold text-[var(--paper)]">
+        <Link href="/" className="mt-5 inline-block rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--on-primary)]">
           Start here →
         </Link>
       </div>
@@ -59,7 +59,7 @@ function Summary({ move, from, to }: { move: MoveDetails; from: Country; to: Cou
         </p>
       </section>
 
-      <section className="mt-5 rounded-3xl bg-[var(--ink)] p-6 text-[var(--paper)]">
+      <section className="mt-5 night-panel rounded-3xl p-6 text-[var(--on-night)]">
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-lg font-semibold">
           <span>
             {from.name}
@@ -106,7 +106,7 @@ function Summary({ move, from, to }: { move: MoveDetails; from: Country; to: Cou
         <Link href="/survey" className="rounded-full border border-[var(--line)] px-5 py-3 text-sm font-medium">
           ← Back to survey
         </Link>
-        <button onClick={() => window.print()} className="rounded-full bg-[var(--ink)] px-6 py-3 text-sm font-semibold text-[var(--paper)]">
+        <button onClick={() => window.print()} className="rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--on-primary)]">
           Save as PDF
         </button>
       </nav>
