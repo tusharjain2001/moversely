@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { ArrowRight } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
@@ -21,7 +21,7 @@ export default function MoveForm() {
 
 function validate(m: MoveDetails): string | null {
   if (!m.from || !m.to) return "Choose where you are moving from and to.";
-  if (m.from === m.to) return "“Moving from” and “Moving to” must be different countries.";
+  if (m.from === m.to) return "â€œMoving fromâ€ and â€œMoving toâ€ must be different countries.";
   if (!m.date) return "Choose your moving date.";
   if (!m.name.trim()) return "Enter your name.";
   if (!/^\S+@\S+\.\S+$/.test(m.email)) return "Enter a valid email address.";
@@ -47,16 +47,16 @@ function Form() {
         saveMove({ ...move, name: move.name.trim(), email: move.email.trim(), phone: move.phone.trim() });
         router.push("/survey");
       }}
-      className="rounded-3xl border border-[var(--line)] bg-[var(--card)] p-5 shadow-[0_24px_60px_-30px_rgb(22_24_29/0.35)] sm:p-7"
+      className="rounded-3xl border border-[var(--line)] bg-[var(--card)] p-4 shadow-[0_24px_60px_-30px_rgb(22_24_29/0.35)] sm:p-7"
     >
-      <h2 className="text-xl font-semibold tracking-tight">Start your move plan</h2>
+      <h2 className="text-lg font-semibold tracking-tight sm:text-xl">Start your move plan</h2>
       <p className="mt-1 text-sm text-[var(--muted)]">Step 1 of 3. Takes under a minute.</p>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-2">
+      <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3.5 sm:mt-5 sm:gap-x-4 sm:gap-y-4">
         <label className="block text-sm font-medium">
           Moving from
           <select value={move.from} onChange={(e) => set("from", e.target.value)} className={inputClass}>
-            <option value="">Select country</option>
+            <option value="">Select</option>
             {COUNTRIES.map((c) => (
               <option key={c.slug} value={c.slug}>
                 {c.name}
@@ -67,7 +67,7 @@ function Form() {
         <label className="block text-sm font-medium">
           Moving to
           <select value={move.to} onChange={(e) => set("to", e.target.value)} className={inputClass}>
-            <option value="">Select country</option>
+            <option value="">Select</option>
             {COUNTRIES.map((c) => (
               <option key={c.slug} value={c.slug} disabled={c.slug === move.from}>
                 {c.name}
@@ -75,7 +75,7 @@ function Form() {
             ))}
           </select>
         </label>
-        <fieldset className="sm:col-span-2">
+        <fieldset className="col-span-2">
           <legend className="text-sm font-medium">What are you moving?</legend>
           <div className="mt-1.5 grid grid-cols-3 gap-1 rounded-xl border border-[var(--line)] bg-[var(--paper)] p-1">
             {MOVE_TYPES.map((t) => (
@@ -84,11 +84,12 @@ function Form() {
                 type="button"
                 aria-pressed={move.moveType === t.value}
                 onClick={() => set("moveType", t.value)}
-                className={`rounded-lg px-1 py-1.5 text-xs font-medium leading-tight transition ${
+                className={`whitespace-nowrap rounded-lg px-1 py-2 text-sm font-medium leading-tight transition sm:py-1.5 sm:text-xs ${
                   move.moveType === t.value ? "bg-[var(--primary)] text-[var(--on-primary)]" : "text-[var(--muted)] hover:text-[var(--ink)]"
                 }`}
               >
-                {t.label}
+                <span className="sm:hidden">{t.short}</span>
+                <span className="hidden sm:inline">{t.label}</span>
               </button>
             ))}
           </div>
@@ -98,10 +99,14 @@ function Form() {
           <input type="date" min={today} value={move.date} onChange={(e) => set("date", e.target.value)} className={inputClass} />
         </label>
         <label className="block text-sm font-medium">
+          Phone
+          <input type="tel" value={move.phone} onChange={(e) => set("phone", e.target.value)} autoComplete="tel" className={inputClass} />
+        </label>
+        <label className="col-span-2 block text-sm font-medium sm:col-span-1">
           Full name
           <input value={move.name} onChange={(e) => set("name", e.target.value)} autoComplete="name" className={inputClass} />
         </label>
-        <label className="block text-sm font-medium">
+        <label className="col-span-2 block text-sm font-medium sm:col-span-1">
           Email
           <input
             type="email"
@@ -110,10 +115,6 @@ function Form() {
             autoComplete="email"
             className={inputClass}
           />
-        </label>
-        <label className="block text-sm font-medium">
-          Phone
-          <input type="tel" value={move.phone} onChange={(e) => set("phone", e.target.value)} autoComplete="tel" className={inputClass} />
         </label>
       </div>
 

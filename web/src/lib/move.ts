@@ -14,10 +14,10 @@ export type MoveDetails = {
   moveType: MoveType;
 };
 
-export const MOVE_TYPES: { value: MoveType; label: string }[] = [
-  { value: "full", label: "Full household" },
-  { value: "partial", label: "Partial household" },
-  { value: "boxes", label: "A few boxes" },
+export const MOVE_TYPES: { value: MoveType; label: string; short: string }[] = [
+  { value: "full", label: "Full household", short: "Full home" },
+  { value: "partial", label: "Partial household", short: "Partial" },
+  { value: "boxes", label: "A few boxes", short: "Few boxes" },
 ];
 
 export function loadMove(): MoveDetails | null {
