@@ -1,4 +1,4 @@
-import {
+﻿import {
   ArrowRight,
   CaretDown,
   Cube,
@@ -69,14 +69,14 @@ export default function Home() {
           </Link>
           <nav className="hidden items-center gap-8 text-sm text-[var(--muted)] md:flex">
             {NAV.map((n) => (
-              <a key={n.href} href={n.href} className="transition hover:text-[var(--ink)]">
+              <a key={n.href} href={n.href} className="link-underline transition hover:text-[var(--ink)]">
                 {n.label}
               </a>
             ))}
           </nav>
           <a
             href="#start"
-            className="rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--on-primary)] transition hover:opacity-90 active:scale-[0.98]"
+            className="btn-primary rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--on-primary)]"
           >
             Get started
           </a>
@@ -96,9 +96,9 @@ export default function Home() {
             </p>
             <a
               href="#how"
-              className="mt-8 inline-flex items-center gap-2 font-semibold underline decoration-[var(--tape)] decoration-2 underline-offset-[6px] transition hover:decoration-[var(--ink)]"
+              className="group mt-8 inline-flex items-center gap-2 font-semibold underline decoration-[var(--tape)] decoration-2 underline-offset-[6px] transition hover:decoration-[var(--ink)]"
             >
-              See how it works <ArrowRight size={18} weight="bold" />
+              See how it works <ArrowRight size={18} weight="bold" className="transition-transform group-hover:translate-x-1" />
             </a>
           </div>
           <div id="start" className="fade-up scroll-mt-24 [animation-delay:120ms]">
@@ -112,7 +112,7 @@ export default function Home() {
             <p className="shrink-0 text-sm font-medium text-[var(--muted)]">Customs checklists for</p>
             <ul className="flex flex-wrap gap-2">
               {COUNTRIES.map((c) => (
-                <li key={c.slug} className="rounded-full border border-[var(--line)] px-3 py-1 text-sm">
+                <li key={c.slug} className="cursor-default rounded-full border border-[var(--line)] px-3 py-1 text-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--on-primary)]">
                   {c.name}
                 </li>
               ))}
@@ -120,31 +120,31 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="how" className="mx-auto grid max-w-6xl scroll-mt-20 gap-12 px-4 py-20 sm:px-6 md:grid-cols-2 md:items-center md:py-28">
-          <div>
-            <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">From a short video to a full moving plan</h2>
-            <ol className="mt-10 space-y-8">
-              {STEPS.map((s, i) => (
-                <li key={s.title} className="grid grid-cols-[auto_1fr] gap-4">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--tape)] font-mono text-sm font-semibold text-black">
-                    {i + 1}
-                  </span>
-                  <div>
-                    <h3 className="font-semibold">{s.title}</h3>
-                    <p className="mt-1 max-w-[48ch] text-[var(--muted)]">{s.body}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-          <PhoneShot src="/landing/survey.webp" alt="Room survey screen showing scanned rooms and the total shipment volume" />
+        <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6 md:py-28">
+          <h2 className="reveal max-w-[22ch] text-3xl font-semibold tracking-tight sm:text-4xl">
+            From a short video to a full moving plan
+          </h2>
+          <ol className="relative mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
+            <span className="absolute left-[18px] top-2 h-[calc(100%-6rem)] w-px bg-[var(--line)] md:left-0 md:top-[18px] md:h-px md:w-full" aria-hidden />
+            {STEPS.map((s, i) => (
+              <li key={s.title} className="reveal group relative grid grid-cols-[auto_1fr] gap-4 md:block">
+                <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[var(--tape)] font-mono text-sm font-semibold text-black ring-4 ring-[var(--paper)] transition duration-300 group-hover:scale-110">
+                  {i + 1}
+                </span>
+                <div className="md:mt-6">
+                  <h3 className="text-lg font-semibold transition-colors group-hover:text-[var(--primary)]">{s.title}</h3>
+                  <p className="mt-1.5 max-w-[36ch] text-[var(--muted)]">{s.body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
         </section>
 
         <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6 md:pb-28">
-          <h2 className="max-w-[20ch] text-3xl font-semibold tracking-tight sm:text-4xl">No home visit. No tape measure. No guesswork.</h2>
+          <h2 className="reveal max-w-[20ch] text-3xl font-semibold tracking-tight sm:text-4xl">No home visit. No tape measure. No guesswork.</h2>
           <div className="mt-10 grid gap-3 md:grid-cols-6">
-            <div className="flex min-h-64 flex-col justify-between rounded-3xl night-panel p-7 text-[var(--on-night)] md:col-span-4">
-              <Cube size={32} weight="duotone" />
+            <div className="reveal lift sheen group flex min-h-64 flex-col justify-between rounded-3xl night-panel p-7 text-[var(--on-night)] md:col-span-4">
+              <Cube size={32} weight="duotone" className="transition duration-500 group-hover:rotate-[20deg] group-hover:scale-110" />
               <div>
                 <h3 className="text-2xl font-semibold tracking-tight">Measured in 3D, not guessed</h3>
                 <p className="mt-2 max-w-[48ch] opacity-70">
@@ -152,8 +152,8 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <div className="tape flex flex-col justify-between rounded-3xl bg-[var(--tape)] p-7 text-black md:col-span-2">
-              <DeviceMobile size={32} weight="duotone" />
+            <div className="reveal lift tape group flex flex-col justify-between rounded-3xl bg-[var(--tape)] p-7 text-black md:col-span-2">
+              <DeviceMobile size={32} weight="duotone" className="transition duration-300 group-hover:-rotate-12 group-hover:scale-110" />
               <div className="mt-10">
                 <h3 className="text-xl font-semibold tracking-tight">No app to install</h3>
                 <p className="mt-2 text-black/70">Works in the browser on any iPhone or Android.</p>
@@ -174,14 +174,14 @@ export default function Home() {
         <section id="documents" className="scroll-mt-20 border-y border-[var(--line)] bg-[var(--card)]">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 md:grid-cols-2 md:items-center md:py-28">
             <PhoneShot
-              src="/landing/summary.webp"
+              src="/landing/summary-2.webp"
               alt="Move summary screen with shipment volume and a customs document checklist"
               className="md:order-first"
             />
             <div>
-              <FileText size={32} weight="duotone" className="text-[var(--accent)]" />
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Know your paperwork before you pack</h2>
-              <p className="mt-4 max-w-[48ch] text-lg leading-relaxed text-[var(--muted)]">
+              <FileText size={32} weight="duotone" className="reveal text-[var(--accent)]" />
+              <h2 className="reveal mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Know your paperwork before you pack</h2>
+              <p className="reveal mt-4 max-w-[48ch] text-lg leading-relaxed text-[var(--muted)]">
                 Your summary lists the documents for leaving one country and arriving in the next, plus duty-free rules and
                 items to leave behind.
               </p>
@@ -191,7 +191,7 @@ export default function Home() {
                   ["Leaving", "Export rules for your origin"],
                   ["Arriving", "Import and duty-free rules"],
                 ].map(([t, d]) => (
-                  <div key={t} className="rounded-2xl border border-[var(--line)] p-4">
+                  <div key={t} className="reveal lift rounded-2xl border border-[var(--line)] p-4">
                     <dt className="font-semibold">{t}</dt>
                     <dd className="mt-1 text-sm text-[var(--muted)]">{d}</dd>
                   </div>
@@ -202,31 +202,31 @@ export default function Home() {
         </section>
 
         <section id="faq" className="mx-auto grid max-w-6xl scroll-mt-20 gap-10 px-4 py-20 sm:px-6 md:grid-cols-[1fr_1.5fr] md:py-28">
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">Questions</h2>
-          <div className="divide-y divide-[var(--line)] border-y border-[var(--line)]">
+          <h2 className="reveal text-3xl font-semibold tracking-tight sm:text-4xl">Questions</h2>
+          <div className="reveal divide-y divide-[var(--line)] border-y border-[var(--line)]">
             {FAQ.map((f) => (
               <details key={f.q} className="group py-5">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold [&::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold transition-colors hover:text-[var(--primary)] [&::-webkit-details-marker]:hidden">
                   {f.q}
                   <CaretDown size={18} className="shrink-0 transition group-open:rotate-180" />
                 </summary>
-                <p className="mt-3 max-w-[60ch] text-[var(--muted)]">{f.a}</p>
+                <p className="faq-answer mt-3 max-w-[60ch] text-[var(--muted)]">{f.a}</p>
               </details>
             ))}
           </div>
         </section>
 
         <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
-          <div className="night-panel flex flex-col items-start justify-between gap-6 rounded-3xl p-8 text-[var(--on-night)] sm:p-12 md:flex-row md:items-center">
+          <div className="reveal sheen night-panel flex flex-col items-start justify-between gap-6 rounded-3xl p-8 text-[var(--on-night)] sm:p-12 md:flex-row md:items-center">
             <div>
               <h2 className="text-3xl font-semibold tracking-tight">Plan your move tonight</h2>
               <p className="mt-2 opacity-70">Start with your route. Scan your rooms whenever you are ready.</p>
             </div>
             <a
               href="#start"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[var(--tape)] px-6 py-3.5 font-semibold text-black transition hover:opacity-90 active:scale-[0.98]"
+              className="btn-accent group inline-flex shrink-0 items-center gap-2 rounded-full bg-[var(--tape)] px-6 py-3.5 font-semibold text-black"
             >
-              Get started <ArrowRight size={18} weight="bold" />
+              Get started <ArrowRight size={18} weight="bold" className="transition-transform group-hover:translate-x-1" />
             </a>
           </div>
         </section>
@@ -250,8 +250,8 @@ export default function Home() {
 
 function Tile({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col justify-between gap-8 rounded-3xl border border-[var(--line)] bg-[var(--card)] p-7 md:col-span-2">
-      {icon}
+    <div className="reveal lift group flex flex-col justify-between gap-8 rounded-3xl border border-[var(--line)] bg-[var(--card)] p-7 md:col-span-2">
+      <span className="w-fit text-[var(--primary)] transition duration-300 group-hover:-translate-y-1 group-hover:scale-110">{icon}</span>
       <div>
         <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
         <p className="mt-1.5 text-[var(--muted)]">{children}</p>
@@ -262,7 +262,7 @@ function Tile({ icon, title, children }: { icon: ReactNode; title: string; child
 
 function PhoneShot({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
   return (
-    <div className={`relative mx-auto w-full max-w-[340px] ${className}`}>
+    <div className={`reveal relative mx-auto w-full max-w-[340px] transition duration-500 hover:-translate-y-2 hover:rotate-[-1deg] ${className}`}>
       <div className="absolute -inset-6 -z-10 rounded-[3rem] bg-[var(--primary)]/20 blur-3xl" aria-hidden />
       <div className="overflow-hidden rounded-[2.5rem] border-[10px] border-[#16181d] bg-[#16181d] shadow-[0_30px_80px_-30px_rgb(22_24_29/0.5)]">
         <Image src={src} alt={alt} width={1040} height={1400} sizes="340px" className="h-auto w-full rounded-[1.75rem]" />

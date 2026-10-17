@@ -124,8 +124,8 @@ function Form() {
         </p>
       )}
 
-      <button className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3.5 font-semibold text-[var(--on-primary)] transition hover:opacity-90 active:scale-[0.98]">
-        Next: scan your rooms <ArrowRight size={18} weight="bold" />
+      <button className="btn-primary group mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3.5 font-semibold text-[var(--on-primary)]">
+        Next: scan your rooms <ArrowRight size={18} weight="bold" className="transition-transform group-hover:translate-x-1" />
       </button>
     </form>
   );

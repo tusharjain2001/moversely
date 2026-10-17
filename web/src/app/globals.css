@@ -83,6 +83,106 @@ html {
   .fade-up {
     animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
+
+  /* The hero glow drifts slowly so the first screen feels alive. */
+  .hero-glow {
+    background-size: 140% 140%, 140% 140%;
+    animation: glow-drift 16s ease-in-out infinite alternate;
+  }
+
+  /* Hover: cards lift with a soft teal shadow. */
+  .lift {
+    transition:
+      translate 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.4s,
+      border-color 0.4s;
+  }
+  .lift:hover {
+    translate: 0 -4px;
+    box-shadow: 0 22px 44px -24px rgb(7 125 125 / 0.45);
+    border-color: var(--primary);
+  }
+
+  .btn-primary,
+  .btn-accent {
+    transition:
+      translate 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+      scale 0.15s,
+      box-shadow 0.25s;
+  }
+  .btn-primary:hover {
+    translate: 0 -1px;
+    box-shadow: 0 10px 24px -10px var(--primary);
+  }
+  .btn-accent:hover {
+    translate: 0 -1px;
+    box-shadow: 0 10px 24px -10px var(--tape);
+  }
+  .btn-primary:active,
+  .btn-accent:active {
+    scale: 0.98;
+  }
+
+  /* A light sweep across dark panels on hover. */
+  .sheen {
+    position: relative;
+    overflow: hidden;
+  }
+  .sheen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.09) 50%, transparent 65%);
+    transform: translateX(-100%);
+    transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+  }
+  .sheen:hover::after {
+    transform: translateX(100%);
+  }
+
+  details[open] .faq-answer {
+    animation: fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+/* Sections ease in as they scroll into view. Browsers without scroll-driven
+   animations simply show everything. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+
+@keyframes glow-drift {
+  from {
+    background-position: 0% 0%, 100% 100%;
+  }
+  to {
+    background-position: 100% 30%, 0% 70%;
+  }
+}
+
+.link-underline {
+  background: linear-gradient(currentColor, currentColor) left bottom / 0 1.5px no-repeat;
+  padding-bottom: 2px;
+  transition:
+    background-size 0.3s,
+    color 0.2s;
+}
+.link-underline:hover {
+  background-size: 100% 1.5px;
 }
 
 @keyframes fade-up {
