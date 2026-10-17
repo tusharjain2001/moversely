@@ -144,6 +144,11 @@ html {
   details[open] .faq-answer {
     animation: fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
+
+  /* New chat messages slide in gently. */
+  .chat-in {
+    animation: chat-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
 }
 
 /* Sections ease in as they scroll into view. Browsers without scroll-driven
@@ -162,6 +167,13 @@ html {
   from {
     opacity: 0;
     transform: translateY(28px);
+  }
+}
+
+@keyframes chat-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
 }
 

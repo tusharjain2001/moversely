@@ -12,6 +12,7 @@ export type MoveDetails = {
   to: string; // country slug
   date: string; // yyyy-mm-dd
   moveType: MoveType;
+  leadId?: string; // the lead saved on the AI server, so the survey result can be added to it
 };
 
 export const MOVE_TYPES: { value: MoveType; label: string; short: string }[] = [

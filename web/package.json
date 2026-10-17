@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "sync:catalog": "node -e \"require('fs').copyFileSync('../ai/survey/catalog.json','src/data/catalog.json')\""
+    "sync:catalog": "node -e \"require('fs').copyFileSync('../ai/survey/catalog.json','src/data/catalog.json')\"",
+    "sync:customs": "node -e \"const fs=require('fs');for(const f of fs.readdirSync('../ai/survey/customs'))fs.copyFileSync('../ai/survey/customs/'+f,'src/data/customs/'+f)\""
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

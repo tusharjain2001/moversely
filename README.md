@@ -3,7 +3,7 @@
 Record a short video of each room. The AI finds every piece of furniture, measures its
 length × depth × height in 3D, and adds up the shipment volume (ft³ / m³).
 
-- **No LLM tokens.** Everything runs on open-source vision models, so the only running cost is
+- **No paid AI tokens.** Everything runs on open-source models on our own server, so the only running cost is
   GPU time while a video is processed (seconds per room).
 - **Works on any phone.** The website records video in the browser (or takes an uploaded video);
   no app install, no LiDAR needed.
@@ -32,6 +32,41 @@ Each item comes back with a confidence badge: **Measured** (several clear views)
 
 The catalog (`ai/survey/catalog.json`) lists ~40 moving items. Adding a new item type is one line:
 no training needed.
+
+## Talk to AI, leads and the team page
+
+- **`/chat`**: a chat that collects the move details (route, what's moving, car, pets, date,
+  name, email, phone), answers moving questions, then opens the room survey. Our code runs the
+  conversation and checks every answer; the chat model (Qwen3 1.7B, Apache-2.0, run by Ollama) is
+  only asked free-form questions. Common questions (cost, timing, documents, pets, services,
+  privacy) get fixed answers from our own data, so a small model can't invent prices or rules.
+  Code: `ai/survey/chat.py`.
+- **Leads**: every chat and every homepage form is saved, and the survey total is added once the
+  visitor reaches the documents page. Code: `ai/survey/db.py`, endpoints in `ai/survey/crm.py`.
+- **`/admin`**: password-protected list of leads with the full chat (`ADMIN_PASSWORD` in `ai/.env`).
+
+Customs summaries live in `ai/survey/customs/` (the chat uses them); `npm run sync:customs` copies
+them to the website.
+
+## Moving to a real server
+
+Everything that differs between this laptop and a server is a setting (`ai/.env` locally,
+environment variables on a server; see `ai/.env.example`):
+
+| Setting | This laptop | Real server |
+|---|---|---|
+| `DATABASE_URL` | unset: SQLite file `ai/data/survey.db` | `postgresql+psycopg://user:pass@host:5432/db` (Supabase, Neon, AWS RDS, a VPS…); `pip install "psycopg[binary]"` |
+| `CHAT_AI_URL` / `CHAT_AI_MODEL` | Ollama here, `survey-chat` | any OpenAI-style endpoint: Ollama or vLLM on a GPU server, a model host, or a paid API |
+| `CHAT_AI_KEY` | unset | the service's API key, if any |
+| `CHAT_AI_EXTRA` | turns off Qwen3 "thinking" | `{}` for services that don't accept `reasoning_effort` |
+| `ADMIN_PASSWORD` | in `ai/.env` | a strong password |
+| `NEXT_PUBLIC_AI_API_URL` (website) | unset: `/ai` forwarded to localhost:8000 | the AI server's public URL |
+
+1. Create the Postgres database and set `DATABASE_URL`. Tables are created on first start.
+2. Optional, to keep the leads collected so far:
+   `python scripts/copy_db.py sqlite:///data/survey.db postgresql+psycopg://...`
+3. Run the chat model where the AI server can reach it and set `CHAT_AI_URL` / `CHAT_AI_MODEL`.
+4. Deploy the AI server and the website as below.
 
 ## Run it on this PC
 

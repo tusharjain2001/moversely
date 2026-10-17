@@ -1,0 +1,52 @@
+{
+  "slug": "germany",
+  "name": "Germany",
+  "import": {
+    "updated": "19 Feb 2026",
+    "documents": [
+      "Customs form 0350",
+      "Proof you lived outside the EU, e.g. deregistration certificate (Abmeldebescheinigung)",
+      "Or employer or embassy letter confirming a planned stay abroad of 12+ months",
+      "Passport copy",
+      "German address registration (Anmeldebestätigung), if you have it",
+      "Rental contract and employment contract, if relevant",
+      "Inventory of the goods",
+      "Signed note that no firearms, alcohol, tobacco, tea or coffee are packed"
+    ],
+    "dutyFree": [
+      "You lived outside the EU for over 12 months, or planned to",
+      "Goods and vehicles owned and used by you for at least 6 months",
+      "Goods arrive within 12 months of moving your main home to Germany",
+      "Goods are kept for the same use and not sold for 12 months"
+    ],
+    "restricted": [
+      "Alcohol and tobacco are not covered by the duty-free allowance",
+      "Weapons, ammunition, fireworks, cash, medicines and narcotics are restricted",
+      "Food, plants and animal products are restricted",
+      "Pets need a microchip, rabies vaccination and vet certificate; some dog breeds are banned",
+      "Commercial vehicles and business equipment pay duty"
+    ],
+    "notes": [
+      "Give the individual value of any single item worth more than EUR 5,000",
+      "Private cars must be registered to you abroad for 6 months, then pass a German technical inspection",
+      "Wooden crates must carry the ISPM 15 mark or may be inspected or treated",
+      "Only German customs can grant the duty-free entry"
+    ]
+  },
+  "export": {
+    "updated": "19 Feb 2026",
+    "documents": [
+      "Export declaration filed in advance through the German ATLAS customs system"
+    ],
+    "dutyFree": [
+      "No customs tariffs on exported household goods and personal effects"
+    ],
+    "restricted": [
+      "Some goods, destinations or people may face export restrictions"
+    ],
+    "notes": [
+      "Everything going to a country outside the EU must clear German customs",
+      "You need documents proving the goods actually left for the non-EU country"
+    ]
+  }
+}

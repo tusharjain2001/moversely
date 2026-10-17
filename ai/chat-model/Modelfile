@@ -1,0 +1,10 @@
+# Chat model for the "Talk to AI" page: Qwen3 1.7B (Apache-2.0), run on the CPU
+# so the survey models keep the whole GPU. Build with:
+#   ollama pull qwen3:1.7b
+#   ollama create survey-chat -f Modelfile
+# Keep it loaded between chats (otherwise the first question after 5 idle
+# minutes waits for it to load): set OLLAMA_KEEP_ALIVE=24h for Ollama.
+FROM qwen3:1.7b
+PARAMETER num_gpu 0
+PARAMETER num_ctx 4096
+PARAMETER temperature 0.2

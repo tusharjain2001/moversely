@@ -4,6 +4,8 @@
     -> http://localhost:8000
 
 Jobs run one at a time on a single worker thread and are kept in memory.
+Settings (database, chat model, admin password) come from ai/.env; see
+.env.example.
 """
 
 import os
@@ -14,11 +16,24 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-import uvicorn
 
-from survey.jobs import create_app
-from survey.models import get_models
-from survey.pipeline import run
+def _load_env(path: Path) -> None:
+    """KEY=value lines; real environment variables win."""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        key, sep, value = line.partition("=")
+        if sep and not key.strip().startswith("#"):
+            os.environ.setdefault(key.strip(), value.strip().strip('"'))
+
+
+_load_env(Path(__file__).with_name(".env"))
+
+import uvicorn  # noqa: E402
+
+from survey.jobs import create_app  # noqa: E402
+from survey.models import get_models  # noqa: E402
+from survey.pipeline import run  # noqa: E402
 
 
 class LocalJobs:
@@ -61,5 +76,8 @@ class LocalJobs:
 
 
 if __name__ == "__main__":
+    from survey import chat
+
+    threading.Thread(target=chat.warm, daemon=True).start()
     get_models()  # load before the first request instead of during it
     uvicorn.run(create_app(LocalJobs()), host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))

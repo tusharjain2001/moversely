@@ -10,6 +10,7 @@ import {
   IdentificationCard,
   Package,
   PencilSimple,
+  Sparkle,
 } from "@phosphor-icons/react/dist/ssr";
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -75,13 +76,25 @@ export default function Home() {
                 {n.label}
               </a>
             ))}
+            <Link href="/chat" className="link-underline flex items-center gap-1.5 font-medium text-[var(--primary)]">
+              <Sparkle size={16} weight="fill" /> Talk to AI
+            </Link>
           </nav>
-          <a
-            href="#start"
-            className="btn-primary rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--on-primary)]"
-          >
-            Get started
-          </a>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/chat"
+              aria-label="Talk to AI"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--primary)]/40 text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-[var(--on-primary)] md:hidden"
+            >
+              <Sparkle size={18} weight="fill" />
+            </Link>
+            <a
+              href="#start"
+              className="btn-primary rounded-full bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--on-primary)]"
+            >
+              Get started
+            </a>
+          </div>
         </div>
       </header>
 
@@ -96,12 +109,13 @@ export default function Home() {
             <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-[var(--muted)]">
               Record each room on your phone. AI measures your furniture and lists the customs documents for your route.
             </p>
-            <a
-              href="#how"
+            <Link
+              href="/chat"
               className="group mt-8 inline-flex items-center gap-2 font-semibold underline decoration-[var(--tape)] decoration-2 underline-offset-[6px] transition hover:decoration-[var(--ink)]"
             >
-              See how it works <ArrowRight size={18} weight="bold" className="transition-transform group-hover:translate-x-1" />
-            </a>
+              Prefer to chat? Talk to our AI assistant{" "}
+              <ArrowRight size={18} weight="bold" className="transition-transform group-hover:translate-x-1" />
+            </Link>
           </div>
           <div id="start" className="fade-up scroll-mt-24 [animation-delay:120ms]">
             <MoveForm />

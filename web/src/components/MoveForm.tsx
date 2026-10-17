@@ -4,6 +4,7 @@ import { ArrowRight } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { COUNTRIES } from "@/lib/countries";
+import { saveLead } from "@/lib/crm";
 import { MOVE_TYPES, type MoveDetails, loadMove, saveMove, useIsClient } from "@/lib/move";
 
 const EMPTY: MoveDetails = { name: "", email: "", phone: "", from: "", to: "", date: "", moveType: "full" };
@@ -44,7 +45,13 @@ function Form() {
         const problem = validate(move);
         setError(problem);
         if (problem) return;
-        saveMove({ ...move, name: move.name.trim(), email: move.email.trim(), phone: move.phone.trim() });
+        const details = { ...move, name: move.name.trim(), email: move.email.trim(), phone: move.phone.trim() };
+        saveMove(details);
+        // Record the enquiry for the team. The visitor doesn't wait for it, and
+        // the survey works even if the AI server can't be reached.
+        saveLead(details)
+          .then(({ lead_id }) => saveMove({ ...(loadMove() ?? details), leadId: lead_id }))
+          .catch(() => {});
         router.push("/survey");
       }}
       className="rounded-3xl border border-[var(--line)] bg-[var(--card)] p-4 shadow-[0_24px_60px_-30px_rgb(22_24_29/0.35)] sm:p-7"

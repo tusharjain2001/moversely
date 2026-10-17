@@ -1,0 +1,59 @@
+{
+  "slug": "india",
+  "name": "India",
+  "import": {
+    "updated": "13 Jan 2026",
+    "documents": [
+      "Original passport, kept by your Indian agent until clearance",
+      "Valid work, business or residence visa, or PIO card",
+      "Employment or transfer letter showing a stay of 2+ years",
+      "Inventory listing every item with its value",
+      "Purchase bills for any new or electronic items",
+      "Authority letter and customs declaration forms from your agent",
+      "FRRO registration (foreign nationals) and India arrival ticket copy",
+      "PAN card copy and proof of your new address in India"
+    ],
+    "dutyFree": [
+      "Used goods owned for 1+ year can get reduced duty under Transfer of Residence",
+      "After 2+ years abroad, used household items up to INR 5,00,000 in total qualify",
+      "Shorter stays abroad get smaller allowances, starting from INR 60,000"
+    ],
+    "restricted": [
+      "Banned: firearms, ammunition, narcotics, drones, pornography, ivory and wildlife items",
+      "New items and flat-screen TVs pay duty of around 38%",
+      "Tobacco over 100 cigarettes, 25 cigars or 125 g is taxed",
+      "Alcohol carries very high duty; ask your agent before packing any",
+      "Cars face heavy duty and strict rules, and can't enter via Bangalore or Hyderabad"
+    ],
+    "notes": [
+      "You need 2+ years abroad and under 180 days in India during that time",
+      "Ship goods within 1 month of arriving in India (15 days for air)",
+      "Arrive before your shipment and stay until it clears; some ports need you present",
+      "Foreign nationals can't claim Transfer of Residence relief at Chennai or New Delhi"
+    ]
+  },
+  "export": {
+    "updated": "13 Jan 2026",
+    "documents": [
+      "Full passport copy with visa or FRRO registration",
+      "E-ticket copy and boarding pass",
+      "Passport page showing your departure stamp",
+      "Transfer or assignment letter",
+      "Departure certificate",
+      "Customs invoice and packing list",
+      "Signed authority letters and original customs forms from your mover"
+    ],
+    "dutyFree": [],
+    "restricted": [
+      "Drones need advance approval from several government ministries",
+      "Hazardous goods not allowed: batteries, paints, aerosols, fuels, gas tanks, matches",
+      "Firearms, ammunition and weapons, including decorative knives and swords",
+      "Food, spices, plants, soil, tobacco and medicines may be restricted",
+      "Keep valuables out: jewellery, cash, key documents, antiques, expensive art"
+    ],
+    "notes": [
+      "Take batteries out of all devices, especially laptops",
+      "Films, discs and computers may be opened and checked for content"
+    ]
+  }
+}

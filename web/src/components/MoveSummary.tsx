@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import { type Country, type CustomsSummary, GENERAL_DOCUMENTS, countryBySlug } from "@/lib/countries";
+import { saveSurvey } from "@/lib/crm";
 import { MOVE_TYPES, type MoveDetails, loadMove, useIsClient } from "@/lib/move";
 import { useSurvey } from "@/lib/useSurvey";
 import { M3_TO_FT3, formatVolume, shippingGuide } from "@/lib/units";
@@ -40,6 +41,11 @@ function Summary({ move, from, to }: { move: MoveDetails; from: Country; to: Cou
   const measuring = rooms.some((r) => r.status === "uploading" || r.status === "processing");
   const moveType = MOVE_TYPES.find((t) => t.value === move.moveType)?.label;
   const date = new Date(`${move.date}T00:00`).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+
+  // Add the survey result to the team's lead once every room has finished.
+  useEffect(() => {
+    if (move.leadId && !measuring) saveSurvey(move.leadId, itemCount, total * M3_TO_FT3).catch(() => {});
+  }, [move.leadId, measuring, itemCount, total]);
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 pb-16 pt-[max(1.25rem,env(safe-area-inset-top))]">

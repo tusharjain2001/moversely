@@ -1,12 +1,16 @@
 # Install PyTorch first, matching your GPU (see README):
 #   pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu124
 # Every model used is free for commercial use: OmDet-Turbo, SigLIP 2 and
-# SAM 2.1 (Apache-2.0, via transformers) and MoGe-2 (MIT).
+# SAM 2.1 (Apache-2.0, via transformers), MoGe-2 (MIT) and, for the chat,
+# Qwen3 (Apache-2.0, run with Ollama: see chat-model/Modelfile).
 transformers==5.20.1
 timm==1.0.30
 git+https://github.com/microsoft/MoGe.git
 opencv-python-headless
 scipy
+sqlalchemy==2.0.55
+httpx
 fastapi[standard]
 python-multipart
 modal
+# On a server with Postgres, also: psycopg[binary]

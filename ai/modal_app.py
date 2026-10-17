@@ -41,6 +41,9 @@ gpu_image = (
         "git+https://github.com/microsoft/MoGe.git",
         "opencv-python-headless",
         "scipy",
+        "sqlalchemy==2.0.55",
+        "psycopg[binary]",
+        "httpx",
         "fastapi[standard]",
         "python-multipart",
     )
@@ -52,7 +55,9 @@ gpu_image = (
 
 web_image = (
     modal.Image.debian_slim(python_version="3.12")
-    .pip_install("fastapi[standard]", "python-multipart")
+    # Chat and leads: set DATABASE_URL (Postgres), ADMIN_PASSWORD and CHAT_AI_* in a
+    # Modal secret named "ai-room-survey" and attach it to `api` (see README).
+    .pip_install("fastapi[standard]", "python-multipart", "sqlalchemy==2.0.55", "psycopg[binary]", "httpx")
     .add_local_python_source("survey", ignore=["**/__pycache__/**"])
 )
 
