@@ -24,8 +24,8 @@ progress_store = modal.Dict.from_name(f"{APP_NAME}-jobs", create_if_missing=True
 
 
 def _bake_models():
-    """Download all model weights and pre-compute the item-name embeddings at
-    build time, so containers start fast and never download at runtime."""
+    """Download all model weights at build time, so containers start fast and
+    never download at runtime."""
     from survey.models import get_models
 
     get_models()
@@ -36,16 +36,15 @@ gpu_image = (
     .apt_install("ffmpeg", "git", "libgl1", "libglib2.0-0")
     .pip_install("torch==2.6.0", "torchvision==0.21.0", index_url="https://download.pytorch.org/whl/cu124")
     .pip_install(
-        "ultralytics==8.4.177",
-        "git+https://github.com/ultralytics/CLIP.git",
+        "transformers==5.20.1",
+        "timm==1.0.30",
         "git+https://github.com/microsoft/MoGe.git",
-        "lap>=0.5.12",
+        "opencv-python-headless",
         "scipy",
-        "pyyaml",
         "fastapi[standard]",
         "python-multipart",
     )
-    .env({"SURVEY_CACHE": "/models/survey", "HF_HOME": "/models/hf", "YOLO_CONFIG_DIR": "/models/ultralytics"})
+    .env({"HF_HOME": "/models/hf"})
     .workdir("/models")
     .add_local_python_source("survey", copy=True, ignore=["**/__pycache__/**"])
     .run_function(_bake_models, gpu=GPU)

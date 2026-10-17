@@ -19,9 +19,10 @@ length × depth × height in 3D, and adds up the shipment volume (ft³ / m³).
 | Step | What happens | Tech |
 |---|---|---|
 | 1. Frames | Video sampled at 5 frames/second | ffmpeg |
-| 2. Find & track | Every catalog item is found by name and outlined; each item keeps one ID through the video so it is counted once | YOLOE-26 (open-vocabulary segmentation) + BoT-SORT tracker with camera-motion compensation |
+| 2. Find & track | Every catalog item is found by name; each item keeps one ID through the video so it is counted once | OmDet-Turbo (open-vocabulary detector, Apache-2.0) + our own tracker with camera-motion compensation and a colour check (`ai/survey/track.py`) |
+| 2b. Name | Each tracked item is named from 3 clear close-ups; non-items (curtains, laptops, rugs) are dropped | SigLIP 2 (Google, Apache-2.0) |
 | 3. Best views | Per item, up to 5 sharp, fully visible frames from different moments (= different angles) | — |
-| 4. 3D | Each chosen frame becomes a metric 3D point cloud; the floor is found and cross-checked across frames | MoGe-2 (Microsoft, MIT licence) |
+| 4. Outline + 3D | The item is outlined in each chosen frame, and the frame becomes a metric 3D point cloud; the floor is found and cross-checked across frames | SAM 2.1 (Meta, Apache-2.0) + MoGe-2 (Microsoft, MIT) |
 | 5. Measure | Points that aren't the item are removed (floor between legs, things seen *through* the item), then a gravity-aligned box is fitted | numpy / scipy / OpenCV |
 | 6. Combine | Views are merged per item; scale is calibrated if a door (US standard 80″) or dining table is in the video | — |
 | 7. Sanity check | Sides the camera couldn't see get the item's typical size; implausible sizes are flagged; confusable items are relabelled by size (a 1.8 m "table lamp" → floor lamp) | `ai/survey/catalog.json` |
@@ -89,8 +90,10 @@ The deploy prints a URL like `https://<you>--ai-room-survey-api.modal.run`. Chec
   this must be checked against tape-measured furniture (see below).
 - If the camera walks back to an item it already passed, it can be counted twice; the
   customer removes it in the review list. (Next step: full 3D room reconstruction fixes this.)
-- YOLOE (Ultralytics) is AGPL-3.0: fine for a prototype; production needs an Ultralytics
-  licence or a swap to an Apache-licensed detector. MoGe-2 is MIT.
+- Every model is free for commercial use: OmDet-Turbo, SigLIP 2 and SAM 2.1 are Apache-2.0,
+  MoGe-2 is MIT. (The first prototype used YOLOE, which is AGPL; it was replaced on 2026-10-17.)
+- The detector boxes items well but mixes up similar furniture, which is why a separate
+  model names them. Names can still be wrong for items seen only at the frame edge.
 
 ## Accuracy test before showing the client
 

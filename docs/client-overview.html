@@ -37,7 +37,7 @@
 <ol>
   <li>The customer records a 20-60 second video of the room, or uploads one.</li>
   <li>The server takes about 5 frames per second from the video.</li>
-  <li><b>Find the items:</b> YOLOE-26 detects and outlines each piece of furniture from a list of about 40 household items (sofa, bed, wardrobe, table and so on). A tracker (BoT-SORT) follows each item from frame to frame so the same sofa is counted once.</li>
+  <li><b>Find the items:</b> OmDet-Turbo finds each piece of furniture from a list of about 40 household items (sofa, bed, wardrobe, table and so on), and SigLIP 2 (by Google) confirms what each one is. Our own tracker follows each item from frame to frame so the same sofa is counted once.</li>
   <li><b>Measure depth:</b> for the clearest views of each item, MoGe-2 (by Microsoft) estimates the real distance of every pixel in metres. This turns a normal photo into a 3D point cloud, with no special camera or LiDAR needed.</li>
   <li><b>Get the size:</b> we find the floor, cut out each item's 3D points, and fit a box around them to get length, width and height. Results from several views are combined.</li>
   <li><b>Check the result:</b> if a door is visible, its standard height (2.03 m) is used to correct the scale. Every size is checked against normal ranges for that item type.</li>
@@ -46,7 +46,7 @@
 
 <h2>Tech stack</h2>
 <ul>
-  <li><b>AI models:</b> YOLOE-26 (Ultralytics) for detection and MoGe-2 (Microsoft) for depth. Both are open-source and run on our own server.</li>
+  <li><b>AI models:</b> OmDet-Turbo to find items, SigLIP 2 (Google) to name them, SAM 2.1 (Meta) to outline them, and MoGe-2 (Microsoft) for depth. All are open-source, free for commercial use, and run on our own server.</li>
   <li><b>AI server:</b> Python, PyTorch, FastAPI, OpenCV, FFmpeg.</li>
   <li><b>Website:</b> Next.js (React, TypeScript, Tailwind CSS), hosted on Vercel.</li>
   <li><b>GPU hosting (planned):</b> Modal, a pay-per-second cloud GPU (Nvidia T4 or L4). We only pay while a video is being processed.</li>
@@ -59,7 +59,7 @@
   <li>Cloud AI: about 1-2 cents per room. The cloud provider gives $30 of free usage every month, which covers roughly 1,500 rooms (about 300 homes).</li>
   <li>Website hosting: $20 a month.</li>
   <li>AI token fees: none.</li>
-  <li>Licence: YOLOE-26 needs a paid Ultralytics licence for commercial use, or about 1 week of work to switch to a free alternative.</li>
+  <li>Licences: none to pay. Every AI model we use is free for commercial use (Apache 2.0 or MIT).</li>
 </ul>
 
 </body>

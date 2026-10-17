@@ -2,12 +2,13 @@
 
 Stages
 1. Frames: sample the video at a fixed rate.
-2. Track: YOLOE finds and outlines every catalog item in every frame; BoT-SORT
-   (with camera-motion compensation) links them so each item gets one ID.
+2. Track: OmDet-Turbo finds every catalog item in every frame by its name; our
+   tracker (with camera-motion compensation) links them so each item gets one ID.
 3. Views: for each item, pick a few sharp, fully visible frames from different
    moments (= different angles).
-4. Measure: MoGe-2 gives metric 3D points for those frames; we find the floor
-   and fit a gravity-aligned box to the item's points in each view.
+4. Measure: SAM 2.1 outlines the item in those frames and MoGe-2 gives metric
+   3D points; we find the floor and fit a gravity-aligned box to the item's
+   points in each view.
 5. Combine: merge the views per item, calibrate the overall scale against
    objects of standard size (doors), then sanity-check against the catalog.
 
@@ -16,21 +17,19 @@ No LLM is involved, so there is no per-token cost.
 
 import base64
 import os
-import tempfile
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Callable
 
 import cv2
 import numpy as np
 import torch
-import yaml
 
 from .catalog import load_catalog
 from .geometry import Floor, clean_points, edge_mask, find_floor, fit_box
 from .models import Models, get_models
+from .track import Tracker
 from .video import extract_frames, sharpness
 
 M3_TO_FT3 = 35.3147
@@ -38,6 +37,7 @@ TRACK_FPS = float(os.environ.get("SURVEY_TRACK_FPS", 5))
 MAX_DEPTH_FRAMES = int(os.environ.get("SURVEY_MAX_DEPTH_FRAMES", 48))
 DEPTH_TOKENS = int(os.environ["SURVEY_DEPTH_TOKENS"]) if os.environ.get("SURVEY_DEPTH_TOKENS") else None
 VIEWS_PER_ITEM = 5
+MIN_OUTLINE_QUALITY = 0.5
 MIN_VIEW_GAP_S = 0.6
 
 Progress = Callable[[str, float], None]
@@ -49,8 +49,7 @@ class Det:
     cls: int
     conf: float
     box: np.ndarray  # x1, y1, x2, y2
-    polygon: np.ndarray  # mask outline, frame pixels
-    area: float  # fraction of the frame
+    area: float  # box area as a fraction of the frame
     cut_lr: bool  # touches the left/right frame edge: length/depth may be cut off
     cut_tb: bool  # touches the top/bottom frame edge: height may be cut off
 
@@ -74,53 +73,70 @@ class Track:
         return self.dets[-1].frame
 
 
-def _tracker_config() -> str:
-    """BoT-SORT with global motion compensation (the camera is handheld and
-    moving) and a longer memory so items briefly hidden keep their ID."""
-    import ultralytics
-
-    src = Path(ultralytics.__file__).parent / "cfg" / "trackers" / "botsort.yaml"
-    cfg = yaml.safe_load(src.read_text(encoding="utf-8"))
-    cfg.update(track_buffer=int(TRACK_FPS * 6), gmc_method="sparseOptFlow",
-               track_high_thresh=0.3, new_track_thresh=0.35, match_thresh=0.8)
-    path = Path(tempfile.gettempdir()) / "survey_botsort.yaml"
-    path.write_text(yaml.safe_dump(cfg), encoding="utf-8")
-    return str(path)
-
-
 def _track(models: Models, frames: list[np.ndarray], progress: Progress) -> dict[int, Track]:
-    tracker = _tracker_config()
+    tracker = Tracker(buffer=int(TRACK_FPS * 6))
     tracks: dict[int, Track] = defaultdict(Track)
     h, w = frames[0].shape[:2]
     for i, frame in enumerate(frames):
-        res = models.detector.track(frame, persist=i > 0, tracker=tracker, conf=0.2, iou=0.5,
-                                    agnostic_nms=True, verbose=False)[0]
-        if res.boxes is not None and res.boxes.id is not None and res.masks is not None:
-            for tid, cls, conf, box, poly in zip(res.boxes.id.int().tolist(), res.boxes.cls.int().tolist(),
-                                                 res.boxes.conf.tolist(), res.boxes.xyxy.cpu().numpy(),
-                                                 res.masks.xy):
-                if len(poly) < 3:
-                    continue
-                x1, y1, x2, y2 = box
-                area = float(cv2.contourArea(poly.astype(np.float32))) / (w * h)
-                tracks[tid].dets.append(Det(i, cls, conf, box, poly, area,
-                                            x1 < 4 or x2 > w - 4, y1 < 4 or y2 > h - 4))
+        boxes, scores, classes = models.detector(frame)
+        # The detector sometimes boxes most of the scene (curtain, chair and
+        # desk together). A real close-up of one item is detected confidently.
+        areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1]) / (w * h)
+        keep = (areas < 0.5) | (scores >= 0.5)
+        boxes, scores, classes = boxes[keep], scores[keep], classes[keep]
+        for tid, cls, conf, box in zip(tracker.update(frame, boxes, scores), classes, scores, boxes):
+            if tid == 0:
+                continue
+            x1, y1, x2, y2 = box
+            area = float((x2 - x1) * (y2 - y1)) / (w * h)
+            tracks[int(tid)].dets.append(Det(i, int(cls), float(conf), box, area,
+                                             x1 < 4 or x2 > w - 4, y1 < 4 or y2 > h - 4))
         if i % 10 == 0:
             progress("Finding items", 0.10 + 0.40 * i / len(frames))
     return dict(tracks)
 
 
-def _assign_items(models: Models, tracks: dict[int, Track]) -> None:
-    """Each track takes the catalog item with the highest total confidence, so
-    a few frames that flicker to another class don't change the label."""
-    for t in tracks.values():
-        votes: dict[str, float] = defaultdict(float)
-        by_key = {}
-        for d in t.dets:
-            item = models.class_to_item[d.cls]
-            votes[item["key"]] += d.conf
-            by_key[item["key"]] = item
-        t.item = by_key[max(votes, key=votes.get)]
+def _crop(rgb: np.ndarray, box: np.ndarray, pad: float = 0.1) -> np.ndarray:
+    """Box plus a margin, widened so it is at most 2:1. The namer squashes
+    every crop to a square, and a squashed sliver of lamp looks like nothing."""
+    h, w = rgb.shape[:2]
+    x1, y1, x2, y2 = box
+    bw, bh = x2 - x1, y2 - y1
+    px = bw * pad + max(0.0, bh / 2 - bw) / 2
+    py = bh * pad + max(0.0, bw / 2 - bh) / 2
+    return rgb[int(max(0, y1 - py)):int(min(h, y2 + py)), int(max(0, x1 - px)):int(min(w, x2 + px))]
+
+
+def _name_items(models: Models, frames: list[np.ndarray], tracks: dict[int, Track], sharp: np.ndarray) -> None:
+    """The detector is good at where things are, less so at what they are. Name
+    each track from up to three clear, well-spread close-ups instead, averaging
+    the namer's scores. Tracks that look like a non-item (curtain, laptop...)
+    get no item and are dropped."""
+    sharp_norm = sharp / max(float(np.median(sharp)), 1e-6)
+    crops, owner = [], []
+    for tid, t in tracks.items():
+        if len(t.dets) < 2:
+            continue
+        ranked = sorted(t.dets, key=lambda d: (not d.border, d.area * d.conf * min(sharp_norm[d.frame], 2.0)),
+                        reverse=True)
+        picked: list[Det] = []
+        for d in ranked:
+            if all(abs(d.frame - p.frame) >= 3 for p in picked):
+                picked.append(d)
+            if len(picked) == 3:
+                break
+        for d in picked:
+            crop = _crop(frames[d.frame], d.box)
+            if min(crop.shape[:2]) >= 24:
+                crops.append(crop)
+                owner.append(tid)
+    if not crops:
+        return
+    logits = np.concatenate([models.namer(crops[i:i + 32]) for i in range(0, len(crops), 32)])
+    owner = np.array(owner)
+    for tid in set(owner.tolist()):
+        best = int(logits[owner == tid].mean(0).argmax())
+        tracks[tid].item = models.class_to_item[best] if best < len(models.class_to_item) else None
 
 
 def _merge_fragments(tracks: dict[int, Track], fps: float, size: tuple[int, int]) -> list[Track]:
@@ -148,8 +164,9 @@ def _merge_fragments(tracks: dict[int, Track], fps: float, size: tuple[int, int]
 
 
 def _keep(t: Track) -> bool:
+    """Real items are seen in several frames with at least one clear detection."""
     confs = [d.conf for d in t.dets]
-    return len(t.dets) >= 2 and max(confs) >= 0.4 and float(np.mean(confs)) >= 0.28
+    return len(t.dets) >= 3 and max(confs) >= 0.35 and float(np.mean(confs)) >= 0.25
 
 
 def _pick_views(tracks: list[Track], sharp: np.ndarray, fps: float) -> dict[int, list[tuple[Track, Det]]]:
@@ -214,15 +231,17 @@ def _measure(models: Models, frames: list[np.ndarray], by_frame: dict, progress:
     raw: list[tuple[Track, Det, np.ndarray]] = []
     for n, (f, views) in enumerate(by_frame.items()):
         rgb = frames[f]
-        h, w = rgb.shape[:2]
         rng = np.random.default_rng(f)
         geo = models.depth_infer(rgb, num_tokens=DEPTH_TOKENS)
         valid = geo["mask"] & ~edge_mask(geo["depth"], geo["mask"])
         floors[f] = find_floor(geo["points"], valid, rng)
-        for t, d in views:
-            mask = np.zeros((h, w), np.uint8)
-            cv2.fillPoly(mask, [d.polygon.astype(np.int32)], 1)
-            mask = cv2.erode(mask, kernel) > 0
+        outlines = models.segmenter(rgb, [d.box for _, d in views])
+        for (t, d), (outline, quality) in zip(views, outlines):
+            # A box spanning several things (half a curtain and a chair back)
+            # has no clean outline; measuring it would mix their sizes.
+            if quality < MIN_OUTLINE_QUALITY:
+                continue
+            mask = cv2.erode(outline.astype(np.uint8), kernel) > 0
             pts = geo["points"][mask & valid]
             if len(pts) > 8000:
                 pts = pts[rng.choice(len(pts), 8000, replace=False)]
@@ -331,15 +350,16 @@ def _sanity(dims, item: dict) -> tuple[list[float], list[str]]:
     return [round(l, 2), round(w, 2), round(h, 2)], notes
 
 
-def _thumbnail(rgb: np.ndarray, d: Det) -> str:
+def _thumbnail(models: Models, rgb: np.ndarray, d: Det) -> str:
     h, w = rgb.shape[:2]
+    outline = models.segmenter(rgb, [d.box])[0][0].astype(np.uint8)
     x1, y1, x2, y2 = d.box
     px, py = (x2 - x1) * 0.08, (y2 - y1) * 0.08
     x1, y1 = int(max(0, x1 - px)), int(max(0, y1 - py))
     x2, y2 = int(min(w, x2 + px)), int(min(h, y2 + py))
     crop = rgb[y1:y2, x1:x2].copy()
-    poly = (d.polygon - [x1, y1]).astype(np.int32)
-    cv2.polylines(crop, [poly], True, (255, 196, 0), 2, cv2.LINE_AA)
+    contours, _ = cv2.findContours(outline[y1:y2, x1:x2], cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cv2.drawContours(crop, contours, -1, (255, 196, 0), 2, cv2.LINE_AA)
     s = 320 / max(crop.shape[:2])
     if s < 1:
         crop = cv2.resize(crop, None, fx=s, fy=s, interpolation=cv2.INTER_AREA)
@@ -369,7 +389,8 @@ def run(video_path: str, room: str = "Room", progress: Progress | None = None) -
     with torch.inference_mode():
         progress("Finding items", 0.10)
         raw = _track(models, frames, progress)
-        _assign_items(models, raw)
+        _name_items(models, frames, raw, sharp)
+        raw = {tid: t for tid, t in raw.items() if t.item}
         tracks = [t for t in _merge_fragments(raw, TRACK_FPS, (w, h)) if _keep(t)]
 
         progress("Measuring in 3D", 0.55)
@@ -385,7 +406,10 @@ def run(video_path: str, room: str = "Room", progress: Progress | None = None) -
         if not t.item.get("inventory", True):
             continue
         dims = tuple(v * scale for v in dims)
-        item = _relabel(t.item, dims, catalog)
+        # Only let the size overrule the name when the size is trustworthy:
+        # seen whole, with the floor in view, more than once.
+        solid = sum(1 for v in t.views if v["floor"] and not v["border"]) >= 2
+        item = _relabel(t.item, dims, catalog) if solid else t.item
         final, notes = _sanity(dims, item)
         n_views = len(t.views)
         whole = any(not v["border"] for v in t.views)
@@ -405,7 +429,7 @@ def run(video_path: str, room: str = "Room", progress: Progress | None = None) -
             "notes": notes,
             "views": n_views,
             "seen_at_s": round(times[best.frame], 1),
-            "thumbnail": _thumbnail(frames[best.frame], best),
+            "thumbnail": _thumbnail(models, frames[best.frame], best),
         })
 
     items.sort(key=lambda it: -it["volume_m3"])
