@@ -68,6 +68,15 @@ environment variables on a server; see `ai/.env.example`):
 3. Run the chat model where the AI server can reach it and set `CHAT_AI_URL` / `CHAT_AI_MODEL`.
 4. Deploy the AI server and the website as below.
 
+## Run it on a free Google Colab GPU (demos)
+
+`colab/ai-room-survey-colab.ipynb` runs everything (AI server, chat model, website) on a free T4
+GPU and prints one public link; the laptop can be off. Make the code zip with
+`git archive --format=zip -o ai-room-survey-code.zip HEAD`, put it in Google Drive under
+`My Drive/ai-room-survey/`, open the notebook in Colab, choose a T4 GPU and **Run all**. Leads are
+backed up to the same Drive folder every minute. Free Colab stops after ~90 idle minutes or ~12
+hours, and the link changes each session, so it's for demos, not hosting.
+
 ## Run it on this PC
 
 **AI server** (needs an NVIDIA GPU; first start downloads ~2 GB of models):
