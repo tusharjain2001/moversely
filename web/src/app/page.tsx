@@ -1,14 +1,16 @@
 import {
+  AirplaneLanding,
+  AirplaneTakeoff,
   ArrowRight,
   CaretDown,
   Cube,
   DeviceMobile,
   DownloadSimple,
   FileText,
+  IdentificationCard,
   Package,
   PencilSimple,
 } from "@phosphor-icons/react/dist/ssr";
-import Image from "next/image";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import MoveForm from "@/components/MoveForm";
@@ -172,12 +174,7 @@ export default function Home() {
         </section>
 
         <section id="documents" className="scroll-mt-20 border-y border-[var(--line)] bg-[var(--card)]">
-          <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 md:grid-cols-2 md:items-center md:py-28">
-            <PhoneShot
-              src="/landing/summary-2.webp"
-              alt="Move summary screen with shipment volume and a customs document checklist"
-              className="md:order-first"
-            />
+          <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 md:grid-cols-2 md:items-center md:gap-16 md:py-28">
             <div>
               <FileText size={32} weight="duotone" className="reveal text-[var(--accent)]" />
               <h2 className="reveal mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Know your paperwork before you pack</h2>
@@ -185,19 +182,26 @@ export default function Home() {
                 Your summary lists the documents for leaving one country and arriving in the next, plus duty-free rules and
                 items to leave behind.
               </p>
-              <dl className="mt-8 grid gap-4 sm:grid-cols-3">
-                {[
-                  ["Every move", "Passport, visa and inventory"],
-                  ["Leaving", "Export rules for your origin"],
-                  ["Arriving", "Import and duty-free rules"],
-                ].map(([t, d]) => (
-                  <div key={t} className="reveal lift rounded-2xl border border-[var(--line)] p-4">
-                    <dt className="font-semibold">{t}</dt>
-                    <dd className="mt-1 text-sm text-[var(--muted)]">{d}</dd>
-                  </div>
-                ))}
-              </dl>
             </div>
+            <dl className="grid gap-3">
+              {(
+                [
+                  [IdentificationCard, "Every move", "Passport, visa or residence permit, and a full inventory in English."],
+                  [AirplaneTakeoff, "Leaving", "Export papers for your origin country, and items you cannot take."],
+                  [AirplaneLanding, "Arriving", "Import papers, duty-free rules, and restricted items at your destination."],
+                ] as const
+              ).map(([Icon, t, d]) => (
+                <div key={t} className="reveal lift group flex gap-4 rounded-2xl border border-[var(--line)] bg-[var(--paper)] p-5">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)]/12 text-[var(--primary)] transition duration-300 group-hover:scale-110">
+                    <Icon size={22} weight="duotone" />
+                  </span>
+                  <div>
+                    <dt className="font-semibold">{t}</dt>
+                    <dd className="mt-1 text-[var(--muted)]">{d}</dd>
+                  </div>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
 
@@ -255,17 +259,6 @@ function Tile({ icon, title, children }: { icon: ReactNode; title: string; child
       <div>
         <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
         <p className="mt-1.5 text-[var(--muted)]">{children}</p>
-      </div>
-    </div>
-  );
-}
-
-function PhoneShot({ src, alt, className = "" }: { src: string; alt: string; className?: string }) {
-  return (
-    <div className={`reveal relative mx-auto w-full max-w-[340px] transition duration-500 hover:-translate-y-2 hover:rotate-[-1deg] ${className}`}>
-      <div className="absolute -inset-6 -z-10 rounded-[3rem] bg-[var(--primary)]/20 blur-3xl" aria-hidden />
-      <div className="overflow-hidden rounded-[2.5rem] border-[10px] border-[#16181d] bg-[#16181d] shadow-[0_30px_80px_-30px_rgb(22_24_29/0.5)]">
-        <Image src={src} alt={alt} width={1040} height={1400} sizes="340px" className="h-auto w-full rounded-[1.75rem]" />
       </div>
     </div>
   );
