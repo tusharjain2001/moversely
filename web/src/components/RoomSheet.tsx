@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -47,12 +47,12 @@ export default function RoomSheet({ room, units, survey, onClose }: Props) {
     <div className="fixed inset-0 z-40 flex flex-col bg-[var(--paper)]">
       <header className="flex items-center gap-3 border-b border-[var(--line)] px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <button onClick={onClose} aria-label="Back" className="-ml-2 rounded-full p-2 text-xl leading-none">
-          â†
+          ←
         </button>
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-lg font-semibold">{room.name}</h2>
           <p className="text-xs text-[var(--muted)]">
-            {room.items.length} item{room.items.length === 1 ? "" : "s"} Â· {formatVolume(total, units)}
+            {room.items.length} item{room.items.length === 1 ? "" : "s"} · {formatVolume(total, units)}
           </p>
         </div>
         {room.status === "done" && (
@@ -76,18 +76,18 @@ export default function RoomSheet({ room, units, survey, onClose }: Props) {
               className="flex w-full items-center gap-4 rounded-2xl bg-[var(--primary)] p-5 text-left text-[var(--on-primary)]"
             >
               <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--tape)] text-2xl text-black">
-                â—
+                ●
               </span>
               <span>
                 <span className="block text-lg font-semibold">Record the room</span>
-                <span className="block text-sm opacity-70">Walk around slowly for 20â€“60 seconds</span>
+                <span className="block text-sm opacity-70">Walk around slowly for 20–60 seconds</span>
               </span>
             </button>
             <button
               onClick={openPicker}
               className="flex w-full items-center gap-4 rounded-2xl border border-[var(--line)] bg-[var(--card)] p-5 text-left"
             >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--chip)] text-xl">â†‘</span>
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--chip)] text-xl">↑</span>
               <span>
                 <span className="block font-semibold">Upload a video</span>
                 <span className="block text-sm text-[var(--muted)]">From your gallery or files</span>
@@ -156,7 +156,7 @@ export default function RoomSheet({ room, units, survey, onClose }: Props) {
                 onClick={() => setAdding(true)}
                 className="w-full rounded-2xl border border-dashed border-[var(--line)] p-4 text-sm font-medium text-[var(--muted)] hover:border-[var(--primary)] hover:text-[var(--ink)]"
               >
-                + Add an item the camera missed (boxes, lampsâ€¦)
+                + Add an item the camera missed (boxes, lamps…)
               </button>
             )}
           </div>
@@ -167,10 +167,10 @@ export default function RoomSheet({ room, units, survey, onClose }: Props) {
         <nav className="border-t border-[var(--line)] bg-[var(--paper)] px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3">
           <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
             <button onClick={onClose} className="rounded-full border border-[var(--line)] px-5 py-3 text-sm font-medium">
-              â† All rooms
+              ← All rooms
             </button>
             <Link href="/summary" className="rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--on-primary)]">
-              Next: documents â†’
+              Next: documents →
             </Link>
           </div>
         </nav>

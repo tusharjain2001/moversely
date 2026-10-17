@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { ArrowRight } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
@@ -21,7 +21,7 @@ export default function MoveForm() {
 
 function validate(m: MoveDetails): string | null {
   if (!m.from || !m.to) return "Choose where you are moving from and to.";
-  if (m.from === m.to) return "â€œMoving fromâ€ and â€œMoving toâ€ must be different countries.";
+  if (m.from === m.to) return "“Moving from” and “Moving to” must be different countries.";
   if (!m.date) return "Choose your moving date.";
   if (!m.name.trim()) return "Enter your name.";
   if (!/^\S+@\S+\.\S+$/.test(m.email)) return "Enter a valid email address.";
