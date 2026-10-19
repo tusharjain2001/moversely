@@ -44,6 +44,9 @@ no training needed.
 - **Leads**: every chat and every homepage form is saved, and the survey total is added once the
   visitor reaches the documents page. Code: `ai/survey/db.py`, endpoints in `ai/survey/crm.py`.
 - **`/admin`**: password-protected list of leads with the full chat (`ADMIN_PASSWORD` in `ai/.env`).
+- **Lead emails**: each new lead (form or finished chat) and each finished room survey is emailed
+  to the team, with Reply-To set to the customer. Set `SMTP_USER` and `SMTP_PASSWORD` (an app
+  password) in `ai/.env`; test with `python -m survey.notify`. Code: `ai/survey/notify.py`.
 
 Customs summaries live in `ai/survey/customs/` (the chat uses them); `npm run sync:customs` copies
 them to the website.
@@ -60,6 +63,7 @@ environment variables on a server; see `ai/.env.example`):
 | `CHAT_AI_KEY` | unset | the service's API key, if any |
 | `CHAT_AI_EXTRA` | turns off Qwen3 "thinking" | `{}` for services that don't accept `reasoning_effort` |
 | `ADMIN_PASSWORD` | in `ai/.env` | a strong password |
+| `SMTP_USER` / `SMTP_PASSWORD` / `LEAD_EMAIL_TO` | in `ai/.env` | the same, as server secrets (Colab: Secrets panel) |
 | `NEXT_PUBLIC_AI_API_URL` (website) | unset: `/ai` forwarded to localhost:8000 | the AI server's public URL |
 
 1. Create the Postgres database and set `DATABASE_URL`. Tables are created on first start.

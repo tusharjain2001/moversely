@@ -7,7 +7,8 @@
     GET  /admin/leads           all leads           (header X-Admin-Password)
     GET  /admin/leads/{id}      one lead with its chat
 
-ADMIN_PASSWORD must be set for the admin endpoints to work.
+ADMIN_PASSWORD must be set for the admin endpoints to work. New leads and
+finished surveys are emailed to the team when SMTP is set up (see notify.py).
 """
 
 import os
@@ -17,7 +18,7 @@ from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field
 from starlette.concurrency import run_in_threadpool
 
-from . import chat, db
+from . import chat, db, notify
 
 
 class ChatIn(BaseModel):
@@ -77,13 +78,19 @@ def lead_create(body: LeadIn):
         "name": body.name, "email": body.email, "phone": body.phone, "from_country": body.from_, "to_country": body.to,
         "move_date": body.date, "move_type": body.moveType,
     }, body.lead_id)
+    if lead_id != body.lead_id:  # a new lead, not the same visitor sending the form again
+        notify.new_lead(db.get_lead(lead_id))
     return {"lead_id": lead_id}
 
 
 @router.post("/leads/{lead_id}/survey")
 def lead_survey(lead_id: str, body: SurveyIn):
-    if not db.save_survey(lead_id, body.items, body.volume_ft3):
+    before = db.get_lead(lead_id)
+    if not before or not db.save_survey(lead_id, body.items, body.volume_ft3):
         raise HTTPException(404, "Unknown lead.")
+    # The summary page saves again whenever a room changes; email only the first real result.
+    if body.items and not before["survey_items"]:
+        notify.survey_done(db.get_lead(lead_id))
     return {"ok": True}
 
 

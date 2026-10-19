@@ -23,7 +23,7 @@ from datetime import date, datetime
 import httpx
 
 from . import countries as C
-from . import db
+from . import db, notify
 
 CHAT_AI_URL = os.environ.get("CHAT_AI_URL", "http://localhost:11434/v1").rstrip("/")
 CHAT_AI_MODEL = os.environ.get("CHAT_AI_MODEL", "survey-chat")
@@ -432,6 +432,9 @@ def turn(cid: str, text: str = "", value: str = "") -> dict | None:
         if state["step"] == "confirm":
             state["editing"] = False
         _save_lead(cid, state)
+        if state["step"] == "confirm" and not state.get("emailed"):  # all details in: tell the team once
+            state["emailed"] = True
+            notify.new_lead(db.get_lead(state["lead_id"]))
         return _reply(cid, state, [])
 
     if problem:
