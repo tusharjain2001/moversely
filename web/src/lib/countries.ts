@@ -107,6 +107,10 @@ export const COUNTRIES: Country[] = [
 
 export const countryBySlug = (slug: string) => COUNTRIES.find((c) => c.slug === slug);
 
+/** Our country, or a stand-in for a destination we have no customs summary for yet ("Japan"). */
+export const countryOrOther = (slug: string): Country | undefined =>
+  countryBySlug(slug) ?? (slug ? { slug, name: slug, import: null, export: null, fidi: {} } : undefined);
+
 /** Needed for almost every international household move, whatever the route. */
 export const GENERAL_DOCUMENTS = [
   "Passport (copy of the photo page)",

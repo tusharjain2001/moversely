@@ -1,34 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { type ReactNode, useEffect } from "react";
-import { type Country, type CustomsSummary, GENERAL_DOCUMENTS, countryBySlug } from "@/lib/countries";
-import { saveSurvey } from "@/lib/crm";
+import type { ReactNode } from "react";
+import { type Country, type CustomsSummary, GENERAL_DOCUMENTS, countryBySlug, countryOrOther } from "@/lib/countries";
 import { MOVE_TYPES, type MoveDetails, loadMove, useIsClient } from "@/lib/move";
-import { useSurvey } from "@/lib/useSurvey";
 import { M3_TO_FT3, formatVolume, shippingGuide } from "@/lib/units";
+import { useSurveyTotals } from "@/lib/useSurveyTotals";
 import StepHeader from "./StepHeader";
-import { roomVolume } from "./SurveyApp";
 
 export default function MoveSummary() {
   const isClient = useIsClient();
   if (!isClient) return <div className="min-h-dvh" />;
   const move = loadMove();
   const from = move && countryBySlug(move.from);
-  const to = move && (countryBySlug(move.to) ?? (move.to ? otherCountry(move.to) : undefined));
-  return move && from && to ? <Summary move={move} from={from} to={to} /> : <MissingMove />;
+  const to = move && countryOrOther(move.to);
+  return move && from && to ? <Summary move={move} from={from} to={to} /> : <MissingMove step={3} />;
 }
 
-/** A destination we have no customs summary for yet, e.g. "Japan". */
-const otherCountry = (name: string): Country => ({ slug: name, name, import: null, export: null, fidi: {} });
-
-function MissingMove() {
+/** Shown when a later page is opened before the move form was filled in. */
+export function MissingMove({ step }: { step: 2 | 3 }) {
   return (
     <div className="mx-auto w-full max-w-2xl px-4 pb-16 pt-[max(1.25rem,env(safe-area-inset-top))]">
-      <StepHeader step={2} />
+      <StepHeader step={step} />
       <div className="mt-10 rounded-3xl border border-[var(--line)] bg-[var(--card)] p-6 text-center">
         <p className="font-semibold">Tell us about your move first</p>
-        <p className="mt-1 text-sm text-[var(--muted)]">We need your “moving from” and “moving to” countries to show the right documents.</p>
+        <p className="mt-1 text-sm text-[var(--muted)]">We need where you are moving to before we can show this page.</p>
         <Link href="/" className="mt-5 inline-block rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--on-primary)]">
           Start here →
         </Link>
@@ -38,22 +34,14 @@ function MissingMove() {
 }
 
 function Summary({ move, from, to }: { move: MoveDetails; from: Country; to: Country }) {
-  const { rooms, units } = useSurvey();
-  const total = rooms.reduce((s, r) => s + roomVolume(r), 0);
-  const itemCount = rooms.reduce((s, r) => s + r.items.reduce((n, it) => n + it.qty, 0), 0);
-  const measuring = rooms.some((r) => r.status === "uploading" || r.status === "processing");
+  const { units, total, itemCount, measuring } = useSurveyTotals(move);
   const moveType = MOVE_TYPES.find((t) => t.value === move.moveType)?.label;
   const date = new Date(`${move.date}T00:00`).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
-
-  // Add the survey result to the team's lead once every room has finished.
-  useEffect(() => {
-    if (move.leadId && !measuring) saveSurvey(move.leadId, itemCount, total * M3_TO_FT3).catch(() => {});
-  }, [move.leadId, measuring, itemCount, total]);
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 pb-16 pt-[max(1.25rem,env(safe-area-inset-top))]">
       <StepHeader
-        step={2}
+        step={3}
         right={
           <button onClick={() => window.print()} className="rounded-full border border-[var(--line)] px-3 py-1.5 text-xs font-medium">
             Save as PDF
@@ -63,25 +51,30 @@ function Summary({ move, from, to }: { move: MoveDetails; from: Country; to: Cou
 
       <section className="mt-8">
         <h1 className="text-2xl font-semibold tracking-tight">Your move summary</h1>
-        <p className="mt-1 text-sm text-[var(--muted)]">
-          {move.name} · {move.email} · {move.phone}
+        <p className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-sm text-[var(--muted)]">
+          {[move.name, move.email, move.phone].map((v, i) => (
+            <span key={i} className="whitespace-nowrap">
+              {v}
+            </span>
+          ))}
         </p>
       </section>
 
       <section className="mt-5 night-panel rounded-3xl p-6 text-[var(--on-night)]">
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-lg font-semibold">
-          <span>
-            {from.name}
-          </span>
-          <span className="opacity-50">→</span>
-          <span>
-            {move.toPlace ?? to.name}
-          </span>
-        </p>
-        <p className="mt-1 text-sm opacity-70">
+        <dl className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <dt className="text-xs font-medium uppercase tracking-wider opacity-70">From</dt>
+            <dd className="mt-0.5 text-lg font-semibold">{from.name}</dd>
+          </div>
+          <div>
+            <dt className="text-xs font-medium uppercase tracking-wider opacity-70">To</dt>
+            <dd className="mt-0.5 text-lg font-semibold">{move.toPlace ?? to.name}</dd>
+          </div>
+        </dl>
+        <p className="mt-3 text-sm opacity-70">
           {moveType} · moving {date}
         </p>
-        <div className="mt-5 grid grid-cols-2 gap-4">
+        <div className="mt-5 grid gap-4 border-t border-white/15 pt-5 sm:grid-cols-2">
           <div>
             <p className="text-sm opacity-70">Shipment volume</p>
             <p className="text-3xl font-semibold tabular-nums tracking-tight">{formatVolume(total, units)}</p>
@@ -112,8 +105,8 @@ function Summary({ move, from, to }: { move: MoveDetails; from: Country; to: Cou
       <CustomsCard title={`Arriving in ${to.name}`} kind="import" country={to} summary={to.import} link={to.fidi.import} />
 
       <nav className="mt-8 flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <Link href="/survey" className="rounded-full border border-[var(--line)] px-5 py-3 text-sm font-medium">
-          ← Back to survey
+        <Link href="/quotation" className="rounded-full border border-[var(--line)] px-5 py-3 text-sm font-medium">
+          ← Back to quotation
         </Link>
         <button onClick={() => window.print()} className="rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--on-primary)]">
           Save as PDF

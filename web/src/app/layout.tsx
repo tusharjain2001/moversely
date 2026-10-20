@@ -12,10 +12,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const DESCRIPTION =
+  "Record each room on your phone. AI measures your furniture, estimates your shipment volume and lists the customs documents for your route.";
+
 export const metadata: Metadata = {
   title: "MOVERSLY",
-  description:
-    "Record each room on your phone. AI measures your furniture, estimates your shipment volume and lists the customs documents for your route.",
+  description: DESCRIPTION,
+  openGraph: { title: "MOVERSLY: measure your home with your phone", description: DESCRIPTION, siteName: "MOVERSLY", type: "website" },
+  twitter: { card: "summary", title: "MOVERSLY: measure your home with your phone", description: DESCRIPTION },
 };
 
 export const viewport: Viewport = {

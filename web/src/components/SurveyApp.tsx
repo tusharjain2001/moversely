@@ -139,8 +139,8 @@ function Survey() {
         <Link href="/" className="rounded-full border border-[var(--line)] px-5 py-3 text-sm font-medium">
           ← Back
         </Link>
-        <Link href="/summary" className="rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--on-primary)]">
-          Next: documents →
+        <Link href="/quotation" className="rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--on-primary)]">
+          Next: quotation →
         </Link>
       </nav>
 

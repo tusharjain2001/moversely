@@ -5,11 +5,12 @@ import Logo from "@/components/Logo";
 const STEPS = [
   { href: "/", label: "Your move" },
   { href: "/survey", label: "AI survey" },
+  { href: "/quotation", label: "Quotation" },
   { href: "/summary", label: "Documents" },
 ];
 
-/** Brand plus the 3-step progress bar shared by every page of the flow. */
-export default function StepHeader({ step, right }: { step: 0 | 1 | 2; right?: ReactNode }) {
+/** Brand plus the 4-step progress bar shared by every page of the flow. */
+export default function StepHeader({ step, right }: { step: 0 | 1 | 2 | 3; right?: ReactNode }) {
   return (
     <header className="print:hidden">
       <div className="flex items-center justify-between">
@@ -18,7 +19,7 @@ export default function StepHeader({ step, right }: { step: 0 | 1 | 2; right?: R
         </Link>
         {right}
       </div>
-      <ol className="mt-5 grid grid-cols-3 gap-2 text-xs">
+      <ol className="mt-5 grid grid-cols-4 gap-2 text-xs">
         {STEPS.map((s, i) => (
           <li key={s.href}>
             <span className={`block h-1.5 rounded-full ${i <= step ? "bg-[var(--primary)]" : "bg-[var(--line)]"}`} />

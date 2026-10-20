@@ -27,7 +27,7 @@ const NAV = [
 const STEPS = [
   {
     title: "Tell us about your move",
-    body: "Pick the countries you are moving between, your date, and how much you are taking.",
+    body: "Where you are moving to, your date, and how much you are taking. Or answer a few questions in the chat.",
   },
   {
     title: "Scan each room",
@@ -65,6 +65,9 @@ const FAQ = [
 export default function Home() {
   return (
     <div className="overflow-x-clip">
+      <a href="#main" className="skip-link">
+        Skip to content
+      </a>
       <header className="sticky top-0 z-20 border-b border-[var(--line)] bg-[var(--paper)]/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
@@ -98,58 +101,99 @@ export default function Home() {
         </div>
       </header>
 
-      <main>
+      <main id="main">
         {/* Hero: the client wants the form on the first screen. */}
-        <div className="hero-glow">
-        <section className="mx-auto grid max-w-6xl gap-10 px-4 pb-16 pt-10 sm:px-6 lg:grid-cols-[1fr_minmax(0,480px)] lg:items-center lg:gap-16 lg:pt-16">
-          <div className="fade-up">
-            <h1 className="text-4xl font-semibold leading-[1.05] tracking-tighter sm:text-5xl lg:text-6xl">
-              Measure your home <span className="text-[var(--primary)]">with your phone.</span>
-            </h1>
-            <p className="mt-5 max-w-[46ch] text-lg leading-relaxed text-[var(--muted)]">
-              Record each room on your phone. AI measures your furniture and lists the customs documents for your route.
-            </p>
-            <Link
-              href="/chat"
-              className="group mt-8 inline-flex items-center gap-2 font-semibold underline decoration-[var(--tape)] decoration-2 underline-offset-[6px] transition hover:decoration-[var(--ink)]"
-            >
-              Prefer to chat? Talk to our AI assistant{" "}
-              <ArrowRight size={18} weight="bold" className="transition-transform group-hover:translate-x-1" />
-            </Link>
-          </div>
-          <div id="start" className="fade-up scroll-mt-24 [animation-delay:120ms]">
-            <MoveForm />
-          </div>
-        </section>
+        <div className="hero-glow relative">
+          <div className="hero-dots pointer-events-none absolute inset-0" aria-hidden />
+          <section className="relative mx-auto grid max-w-6xl gap-10 px-4 pb-16 pt-10 sm:px-6 lg:grid-cols-[1fr_minmax(0,480px)] lg:items-center lg:gap-16 lg:pb-24 lg:pt-20">
+            <div className="fade-up">
+              <p className="flex items-center gap-2 text-sm font-medium text-[var(--primary)]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--logo-dot)]" aria-hidden />
+                AI moving survey, from Singapore
+              </p>
+              <h1 className="mt-4 text-[2.3rem] font-semibold leading-[1.05] tracking-[-0.035em] sm:text-6xl">
+                Measure your home <span className="block text-[var(--primary)]">with your phone.</span>
+              </h1>
+              <p className="mt-6 max-w-[44ch] text-lg leading-relaxed text-[var(--muted)]">
+                Record each room on your phone. AI measures your furniture and lists the customs documents for your route.
+              </p>
+              {/* Desktop only: on phones the form should be on the first screen. */}
+              <ul className="mt-8 hidden max-w-xl gap-3 text-sm sm:grid sm:grid-cols-3">
+                {(
+                  [
+                    [DeviceMobile, "No app, any phone"],
+                    [Cube, "Measured in 3D"],
+                    [FileText, "Customs checklist"],
+                  ] as const
+                ).map(([Icon, label]) => (
+                  <li key={label} className="flex items-center gap-2.5 font-medium">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--card)] text-[var(--primary)] shadow-[0_1px_2px_rgb(13_27_62/0.06),0_0_0_1px_var(--line)]">
+                      <Icon size={17} weight="duotone" />
+                    </span>
+                    {label}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/chat"
+                className="group mt-6 inline-flex items-center gap-2 font-semibold underline decoration-[var(--tape)] decoration-2 underline-offset-[6px] transition hover:decoration-[var(--primary)] sm:mt-9"
+              >
+                Prefer to chat? Talk to our AI assistant{" "}
+                <ArrowRight size={18} weight="bold" className="transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
+            <div id="start" className="fade-up scroll-mt-24 [animation-delay:120ms]">
+              <MoveForm />
+            </div>
+          </section>
         </div>
 
         <section aria-label="Countries covered" className="border-y border-[var(--line)] bg-[var(--card)]">
-          <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6 sm:px-6 md:flex-row md:items-center md:gap-8">
+          <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-6 sm:px-6 md:flex-row md:items-center md:gap-8">
             <p className="shrink-0 text-sm font-medium text-[var(--muted)]">Customs checklists for</p>
-            <ul className="flex flex-wrap gap-2">
-              {COUNTRIES.map((c) => (
-                <li key={c.slug} className="cursor-default rounded-full border border-[var(--line)] px-3 py-1 text-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--on-primary)]">
-                  {c.name}
-                </li>
-              ))}
-            </ul>
+            {/* One slowly moving line; the second copy makes the loop seamless. */}
+            <div className="marquee min-w-0 flex-1">
+              <div className="marquee-track">
+                {[0, 1].map((copy) => (
+                  <ul key={copy} aria-hidden={copy === 1} className="flex shrink-0 gap-2 pr-2">
+                    {COUNTRIES.map((c) => (
+                      <li
+                        key={c.slug}
+                        className="whitespace-nowrap rounded-full border border-[var(--line)] bg-[var(--paper)] px-3.5 py-1.5 text-sm font-medium"
+                      >
+                        {c.name}
+                      </li>
+                    ))}
+                  </ul>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
 
-        <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6 md:py-28">
-          <h2 className="reveal max-w-[22ch] text-3xl font-semibold tracking-tight sm:text-4xl">
-            From a short video to a full moving plan
-          </h2>
-          <ol className="relative mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
-            <span className="absolute left-[18px] top-2 h-[calc(100%-6rem)] w-px bg-[var(--line)] md:left-0 md:top-[18px] md:h-px md:w-full" aria-hidden />
+        <section
+          id="how"
+          className="mx-auto grid max-w-6xl scroll-mt-20 gap-10 px-4 py-20 sm:px-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] md:gap-16 md:py-28"
+        >
+          <div className="md:sticky md:top-28 md:self-start">
+            <p className="reveal text-sm font-medium text-[var(--primary)]">How it works</p>
+            <h2 className="reveal mt-3 max-w-[16ch] text-3xl font-semibold tracking-tight sm:text-4xl">
+              From a short video to a full moving plan
+            </h2>
+            <p className="reveal mt-4 max-w-[38ch] text-[var(--muted)]">Three steps, all on your phone. No home visit needed.</p>
+          </div>
+          <ol className="border-t border-[var(--line)]">
             {STEPS.map((s, i) => (
-              <li key={s.title} className="reveal group relative grid grid-cols-[auto_1fr] gap-4 md:block">
-                <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[var(--primary)] font-mono text-sm font-semibold text-white ring-4 ring-[var(--paper)] transition duration-300 group-hover:scale-110">
-                  {i + 1}
+              <li
+                key={s.title}
+                className="reveal group grid grid-cols-[3.25rem_1fr] gap-4 border-b border-[var(--line)] py-7 sm:grid-cols-[4.5rem_1fr] sm:py-8"
+              >
+                <span className="font-mono text-3xl font-semibold tabular-nums text-[var(--primary)]/35 transition-colors duration-300 group-hover:text-[var(--primary)] sm:text-4xl">
+                  0{i + 1}
                 </span>
-                <div className="md:mt-6">
-                  <h3 className="text-lg font-semibold transition-colors group-hover:text-[var(--primary)]">{s.title}</h3>
-                  <p className="mt-1.5 max-w-[36ch] text-[var(--muted)]">{s.body}</p>
+                <div>
+                  <h3 className="text-lg font-semibold sm:text-xl">{s.title}</h3>
+                  <p className="mt-1.5 max-w-[46ch] text-[var(--muted)]">{s.body}</p>
                 </div>
               </li>
             ))}
@@ -200,8 +244,8 @@ export default function Home() {
         <section id="documents" className="scroll-mt-20 border-y border-[var(--line)] bg-[var(--card)]">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 md:grid-cols-2 md:items-center md:gap-16 md:py-28">
             <div>
-              <FileText size={32} weight="duotone" className="reveal text-[var(--accent)]" />
-              <h2 className="reveal mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Know your paperwork before you pack</h2>
+              <p className="reveal text-sm font-medium text-[var(--primary)]">Documents</p>
+              <h2 className="reveal mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Know your paperwork before you pack</h2>
               <p className="reveal mt-4 max-w-[48ch] text-lg leading-relaxed text-[var(--muted)]">
                 Your summary lists the documents for leaving one country and arriving in the next, plus duty-free rules and
                 items to leave behind.
@@ -230,7 +274,18 @@ export default function Home() {
         </section>
 
         <section id="faq" className="mx-auto grid max-w-6xl scroll-mt-20 gap-10 px-4 py-20 sm:px-6 md:grid-cols-[1fr_1.5fr] md:py-28">
-          <h2 className="reveal text-3xl font-semibold tracking-tight sm:text-4xl">Questions</h2>
+          <div className="md:sticky md:top-28 md:self-start">
+            <p className="reveal text-sm font-medium text-[var(--primary)]">FAQ</p>
+            <h2 className="reveal mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Questions</h2>
+            <p className="reveal mt-4 max-w-[32ch] text-[var(--muted)]">Can&apos;t find your answer? The AI assistant knows the customs rules for your route.</p>
+            <Link
+              href="/chat"
+              className="reveal group mt-5 inline-flex items-center gap-2 font-semibold text-[var(--primary)]"
+            >
+              <Sparkle size={16} weight="fill" /> Ask the AI assistant
+              <ArrowRight size={16} weight="bold" className="transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
           <div className="reveal divide-y divide-[var(--line)] border-y border-[var(--line)]">
             {FAQ.map((f) => (
               <details key={f.q} className="group py-5">
@@ -260,15 +315,25 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-[var(--line)]">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 text-sm text-[var(--muted)] sm:px-6 md:flex-row md:justify-between">
-          <div className="flex items-center gap-2 text-[var(--ink)]">
+      <footer className="border-t border-[var(--line)] bg-[var(--card)]">
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 pb-12 pt-12 sm:px-6 md:grid-cols-[1fr_auto] md:items-start">
+          <div>
             <Logo />
+            <p className="mt-3 max-w-[60ch] text-xs leading-relaxed text-[var(--muted)]">
+              Sizes are AI estimates. Customs summaries are based on the FIDI Customs Guides and are for information only. We
+              are not affiliated with FIDI and are not FAIM certified.
+            </p>
           </div>
-          <p className="max-w-[70ch] text-xs leading-relaxed">
-            Sizes are AI estimates. Customs summaries are based on the FIDI Customs Guides and are for information only. We
-            are not affiliated with FIDI and are not FAIM certified.
-          </p>
+          <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-[var(--muted)]">
+            {NAV.map((n) => (
+              <a key={n.href} href={n.href} className="link-underline transition hover:text-[var(--ink)]">
+                {n.label}
+              </a>
+            ))}
+            <Link href="/chat" className="link-underline font-medium text-[var(--primary)]">
+              Talk to AI
+            </Link>
+          </nav>
         </div>
       </footer>
     </div>

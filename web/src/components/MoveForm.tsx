@@ -55,10 +55,10 @@ function Form() {
           .catch(() => {});
         router.push("/survey");
       }}
-      className="rounded-3xl border border-[var(--line)] bg-[var(--card)] p-4 shadow-[0_24px_60px_-30px_rgb(22_24_29/0.35)] sm:p-7"
+      className="rounded-3xl border border-[var(--line)] bg-[var(--card)] p-4 shadow-[0_1px_2px_rgb(13_27_62/0.05),0_28px_64px_-32px_rgb(10_70_150/0.38)] sm:p-7"
     >
       <h2 className="text-lg font-semibold tracking-tight sm:text-xl">Start your move plan</h2>
-      <p className="mt-1 text-sm text-[var(--muted)]">Step 1 of 3. Takes under a minute.</p>
+      <p className="mt-1 text-sm text-[var(--muted)]">Step 1 of 4. Takes under a minute.</p>
 
       <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3.5 sm:mt-5 sm:gap-x-4 sm:gap-y-4">
         <div className="col-span-2 block min-w-0 text-sm font-medium sm:col-span-1">
