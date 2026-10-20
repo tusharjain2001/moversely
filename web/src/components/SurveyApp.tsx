@@ -1,7 +1,22 @@
 "use client";
 
+import {
+  Bathtub,
+  Bed,
+  Camera,
+  CheckCircle,
+  CookingPot,
+  Couch,
+  Desk,
+  ForkKnife,
+  Garage,
+  House,
+  Plus,
+  type Icon,
+  WarningCircle,
+} from "@phosphor-icons/react";
 import Link from "next/link";
-import { useState } from "react";
+import { createElement, useState } from "react";
 import { useIsClient } from "@/lib/move";
 import type { Room, Units } from "@/lib/types";
 import { useSurvey } from "@/lib/useSurvey";
@@ -88,13 +103,7 @@ function Survey() {
         <ul className="mt-3 grid grid-cols-2 gap-2">
           {rooms.map((r) => (
             <li key={r.id}>
-              <button
-                onClick={() => setOpenId(r.id)}
-                className="flex h-full min-h-28 w-full flex-col justify-between rounded-2xl border border-[var(--line)] bg-[var(--card)] p-4 text-left transition hover:border-[var(--primary)]"
-              >
-                <span className="font-semibold">{r.name}</span>
-                <RoomStatus room={r} units={units} />
-              </button>
+              <RoomCard room={r} units={units} onOpen={() => setOpenId(r.id)} />
             </li>
           ))}
           <li>
@@ -105,17 +114,26 @@ function Survey() {
                 setOpenId(survey.addRoom(newRoom));
                 setNewRoom("");
               }}
-              className="flex h-full min-h-28 flex-col justify-between rounded-2xl border border-dashed border-[var(--line)] p-4"
+              className="flex h-full min-h-36 flex-col justify-between gap-4 rounded-2xl border-2 border-dashed border-[var(--line)] p-4 transition focus-within:border-[var(--primary)]"
             >
-              <input
-                value={newRoom}
-                onChange={(e) => setNewRoom(e.target.value)}
-                placeholder="Add a room…"
-                className="w-full bg-transparent font-semibold outline-none placeholder:font-normal placeholder:text-[var(--muted)]"
-              />
-              <button disabled={!newRoom.trim()} className="self-start text-sm font-medium text-[var(--accent)] disabled:opacity-40">
-                + Add
-              </button>
+              <span className="grid h-11 w-11 place-items-center rounded-xl border border-dashed border-[var(--primary)]/40 text-[var(--primary)]">
+                <Plus size={22} weight="bold" aria-hidden />
+              </span>
+              <span>
+                <input
+                  value={newRoom}
+                  onChange={(e) => setNewRoom(e.target.value)}
+                  placeholder="Add a room…"
+                  aria-label="Room name"
+                  className="w-full bg-transparent font-semibold outline-none placeholder:font-semibold placeholder:text-[var(--muted)]"
+                />
+                <button
+                  disabled={!newRoom.trim()}
+                  className="mt-2 rounded-full border border-[var(--primary)] px-3.5 py-2 text-sm font-semibold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-[var(--on-primary)] disabled:pointer-events-none disabled:opacity-40"
+                >
+                  + Add room
+                </button>
+              </span>
             </form>
           </li>
         </ul>
@@ -153,20 +171,68 @@ function Survey() {
   );
 }
 
+const ROOM_ICONS: [RegExp, Icon][] = [
+  [/living|lounge|family/i, Couch],
+  [/bed|guest|kid|nursery/i, Bed],
+  [/kitchen/i, CookingPot],
+  [/dining/i, ForkKnife],
+  [/office|study/i, Desk],
+  [/garage|store|shed/i, Garage],
+  [/bath/i, Bathtub],
+];
+const roomIcon = (name: string) => ROOM_ICONS.find(([re]) => re.test(name))?.[1] ?? House;
+
+function RoomCard({ room, units, onOpen }: { room: Room; units: Units; onOpen: () => void }) {
+  const done = room.status === "done";
+  return (
+    <button
+      onClick={onOpen}
+      className={`group relative flex h-full min-h-36 w-full flex-col justify-between gap-4 rounded-2xl border bg-[var(--card)] p-4 text-left transition hover:-translate-y-0.5 hover:border-[var(--primary)] hover:shadow-[0_14px_30px_-18px_rgb(10_70_150/0.45)] active:translate-y-0 ${
+        done ? "border-[var(--ok)]/30" : "border-[var(--line)]"
+      }`}
+    >
+      <span className="flex items-start justify-between gap-2">
+        <span
+          className={`grid h-11 w-11 place-items-center rounded-xl ${
+            done ? "bg-[var(--ok-bg)] text-[var(--ok)]" : "bg-[var(--chip)] text-[var(--primary)]"
+          }`}
+        >
+          {createElement(roomIcon(room.name), { size: 24, weight: "duotone", "aria-hidden": true })}
+        </span>
+        {done && <CheckCircle size={22} weight="fill" className="text-[var(--ok)]" aria-label="Scanned" />}
+      </span>
+      <span>
+        <span className="block font-semibold">{room.name}</span>
+        <span className="mt-2 block">
+          <RoomStatus room={room} units={units} />
+        </span>
+      </span>
+    </button>
+  );
+}
+
 function RoomStatus({ room, units }: { room: Room; units: Units }) {
   switch (room.status) {
     case "empty":
-      return <span className="text-sm text-[var(--muted)]">Tap to scan →</span>;
+      return (
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)] px-3.5 py-2 text-sm font-semibold text-[var(--on-primary)] transition group-hover:brightness-110">
+          <Camera size={16} weight="bold" aria-hidden /> Scan room
+        </span>
+      );
     case "uploading":
-      return <span className="text-sm text-[var(--accent)]">Uploading {Math.round(room.progress * 100)}%</span>;
+      return <span className="text-sm font-medium text-[var(--accent)]">Uploading {Math.round(room.progress * 100)}%</span>;
     case "processing":
       return (
-        <span className="flex items-center gap-2 text-sm text-[var(--accent)]">
+        <span className="flex items-center gap-2 text-sm font-medium text-[var(--accent)]">
           <span className="h-2 w-2 animate-pulse rounded-full bg-[var(--tape)]" /> Measuring…
         </span>
       );
     case "error":
-      return <span className="text-sm text-[var(--bad)]">Try again</span>;
+      return (
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--bad)]/40 px-3.5 py-2 text-sm font-semibold text-[var(--bad)]">
+          <WarningCircle size={16} weight="bold" aria-hidden /> Try again
+        </span>
+      );
     case "done":
       return (
         <span className="text-sm">
