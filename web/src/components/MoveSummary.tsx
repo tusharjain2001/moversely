@@ -14,11 +14,11 @@ export default function MoveSummary() {
   const move = loadMove();
   const from = move && countryBySlug(move.from);
   const to = move && countryOrOther(move.to);
-  return move && from && to ? <Summary move={move} from={from} to={to} /> : <MissingMove step={3} />;
+  return move && from && to ? <Summary move={move} from={from} to={to} /> : <MissingMove step={4} />;
 }
 
 /** Shown when a later page is opened before the move form was filled in. */
-export function MissingMove({ step }: { step: 2 | 3 }) {
+export function MissingMove({ step }: { step: 2 | 3 | 4 }) {
   return (
     <div className="mx-auto w-full max-w-2xl px-4 pb-16 pt-[max(1.25rem,env(safe-area-inset-top))]">
       <StepHeader step={step} />
@@ -41,7 +41,7 @@ function Summary({ move, from, to }: { move: MoveDetails; from: Country; to: Cou
   return (
     <div className="mx-auto w-full max-w-2xl px-4 pb-16 pt-[max(1.25rem,env(safe-area-inset-top))]">
       <StepHeader
-        step={3}
+        step={4}
         right={
           <button onClick={() => window.print()} className="rounded-full border border-[var(--line)] px-3 py-1.5 text-xs font-medium">
             Save as PDF
@@ -105,8 +105,8 @@ function Summary({ move, from, to }: { move: MoveDetails; from: Country; to: Cou
       <CustomsCard title={`Arriving in ${to.name}`} kind="import" country={to} summary={to.import} link={to.fidi.import} />
 
       <nav className="mt-8 flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <Link href="/quotation" className="rounded-full border border-[var(--line)] px-5 py-3 text-sm font-medium">
-          ← Back to quotation
+        <Link href="/payment" className="rounded-full border border-[var(--line)] px-5 py-3 text-sm font-medium">
+          ← Back to payment
         </Link>
         <button onClick={() => window.print()} className="rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--on-primary)]">
           Save as PDF

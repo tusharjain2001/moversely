@@ -14,7 +14,10 @@ export type MoveDetails = {
   date: string; // yyyy-mm-dd
   moveType: MoveType;
   leadId?: string; // the lead saved on the AI server, so the survey result can be added to it
+  booking?: Booking; // set by the (simulated) payment step
 };
+
+export type Booking = { ref: string; insurancePremium: number; total: number; at: string };
 
 /** Every move on this site starts in Singapore, so the form doesn't ask. */
 export const ORIGIN = "singapore";

@@ -4,17 +4,11 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { type Country, countryBySlug, countryOrOther } from "@/lib/countries";
 import { MOVE_TYPES, type MoveDetails, loadMove, useIsClient } from "@/lib/move";
+import { DESTINATION_ROLE, ORIGIN_PARTNER, PRICE_SGD, TRANSIT_DAYS, destinationPartner, money } from "@/lib/quote";
 import { M3_TO_FT3 } from "@/lib/units";
 import { useSurveyTotals } from "@/lib/useSurveyTotals";
 import { MissingMove } from "./MoveSummary";
 import StepHeader from "./StepHeader";
-
-// Sample figures until the pricing API and the partner list are connected.
-const PRICE_SGD = 3700;
-const TRANSIT_DAYS = "20–35 days";
-const ORIGIN_PARTNER = { name: "APAC Relocation", role: "packing, collection, export handling and agreed freight coordination" };
-const DESTINATION_PARTNERS: Record<string, string> = { australia: "OSS Movers" };
-const DESTINATION_ROLE = "import coordination, delivery and agreed unpacking";
 
 const INCLUDED =
   "origin packing and pickup, export coordination, ocean freight arrangement, destination clearance coordination, local delivery and standard unpacking.";
@@ -29,8 +23,6 @@ const TERMS = [
   "Insurance is optional and is arranged at checkout.",
 ];
 
-const money = (sgd: number) => `SGD ${sgd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
 export default function Quotation() {
   const isClient = useIsClient();
   if (!isClient) return <div className="min-h-dvh" />;
@@ -43,9 +35,7 @@ export default function Quotation() {
 function Quote({ move, from, to }: { move: MoveDetails; from: Country; to: Country }) {
   const { total, itemCount, measuring } = useSurveyTotals(move);
   const place = move.toPlace ?? to.name;
-  const moveType = MOVE_TYPES.find((t) => t.value === move.moveType)?.label ?? "Household goods";
-  const date = new Date(`${move.date}T00:00`).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
-  const destinationPartner = DESTINATION_PARTNERS[to.slug] ?? "Local partner (to be confirmed)";
+  const date = moveDate(move);
   const volume = `${total.toFixed(2)} m³`;
   const volumeFt3 = `${Math.round(total * M3_TO_FT3).toLocaleString()} ft³`;
 
@@ -74,7 +64,7 @@ function Quote({ move, from, to }: { move: MoveDetails; from: Country; to: Count
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <Partner label="Origin partner" name={ORIGIN_PARTNER.name} detail={`${from.name} · ${ORIGIN_PARTNER.role}`} />
-            <Partner label="Destination partner" name={destinationPartner} detail={`${to.name} · ${DESTINATION_ROLE}`} />
+            <Partner label="Destination partner" name={destinationPartner(to.slug)} detail={`${to.name} · ${DESTINATION_ROLE}`} />
           </div>
 
           <div className="mt-3 rounded-2xl border border-[var(--ok)]/20 bg-[var(--ok-bg)] p-4">
@@ -161,54 +151,65 @@ function Quote({ move, from, to }: { move: MoveDetails; from: Country; to: Count
               ← Edit survey
             </Link>
             <Link
-              href="/summary"
+              href="/payment"
               className="btn-primary rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--on-primary)]"
             >
-              Next: documents →
+              Next: payment →
             </Link>
           </nav>
         </section>
 
-        <aside className="rounded-3xl border border-[var(--line)] bg-[var(--card)] p-6 lg:sticky lg:top-6">
-          <h2 className="text-lg font-semibold">Your move</h2>
-          <dl className="mt-4 space-y-2.5 text-sm">
-            <Row label="From" small>
-              <span className="font-semibold text-[var(--ink)]">{from.name}</span>
-            </Row>
-            <Row label="To" small>
-              <span className="font-semibold text-[var(--ink)]">{place}</span>
-            </Row>
-            <Row label="Shipment" small>
-              <span className="font-semibold text-[var(--ink)]">{moveType}</span>
-            </Row>
-            <Row label="Move date" small>
-              <span className="font-semibold text-[var(--ink)]">{date}</span>
-            </Row>
-          </dl>
-          <div className="mt-4 flex items-baseline justify-between gap-3 border-t border-[var(--line)] pt-4">
-            <span className="text-sm">Estimated inventory volume</span>
-            <span className="font-semibold tabular-nums">{volume}</span>
-          </div>
-          <dl className="mt-4 space-y-3 border-t border-[var(--line)] pt-4 text-sm">
-            <div>
-              <dt className="text-xs text-[var(--muted)]">Origin partner</dt>
-              <dd className="font-semibold">{ORIGIN_PARTNER.name}</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-[var(--muted)]">Destination partner</dt>
-              <dd className="font-semibold">{destinationPartner}</dd>
-            </div>
-            <div className="border-t border-[var(--line)] pt-3">
-              <dt className="text-xs text-[var(--muted)]">Contracting service provider</dt>
-              <dd className="font-semibold">Moversly</dd>
-            </div>
-          </dl>
-          <p className="mt-4 text-xs leading-relaxed text-[var(--muted)]">
-            Prototype only. Partner assignments, rates and transit windows are sample configurations, not live confirmations.
-          </p>
-        </aside>
+        <MoveAside move={move} from={from} to={to} volume={volume} />
       </div>
     </div>
+  );
+}
+
+export const moveDate = (move: MoveDetails) =>
+  new Date(`${move.date}T00:00`).toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+
+/** The "Your move" panel beside the quotation and payment pages. */
+export function MoveAside({ move, from, to, volume }: { move: MoveDetails; from: Country; to: Country; volume: string }) {
+  const moveType = MOVE_TYPES.find((t) => t.value === move.moveType)?.label ?? "Household goods";
+  return (
+    <aside className="rounded-3xl border border-[var(--line)] bg-[var(--card)] p-6 lg:sticky lg:top-6">
+      <h2 className="text-lg font-semibold">Your move</h2>
+      <dl className="mt-4 space-y-2.5 text-sm">
+        <Row label="From" small>
+          <span className="font-semibold text-[var(--ink)]">{from.name}</span>
+        </Row>
+        <Row label="To" small>
+          <span className="font-semibold text-[var(--ink)]">{move.toPlace ?? to.name}</span>
+        </Row>
+        <Row label="Shipment" small>
+          <span className="font-semibold text-[var(--ink)]">{moveType}</span>
+        </Row>
+        <Row label="Move date" small>
+          <span className="font-semibold text-[var(--ink)]">{moveDate(move)}</span>
+        </Row>
+      </dl>
+      <div className="mt-4 flex items-baseline justify-between gap-3 border-t border-[var(--line)] pt-4">
+        <span className="text-sm">Estimated inventory volume</span>
+        <span className="font-semibold tabular-nums">{volume}</span>
+      </div>
+      <dl className="mt-4 space-y-3 border-t border-[var(--line)] pt-4 text-sm">
+        <div>
+          <dt className="text-xs text-[var(--muted)]">Origin partner</dt>
+          <dd className="font-semibold">{ORIGIN_PARTNER.name}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-[var(--muted)]">Destination partner</dt>
+          <dd className="font-semibold">{destinationPartner(to.slug)}</dd>
+        </div>
+        <div className="border-t border-[var(--line)] pt-3">
+          <dt className="text-xs text-[var(--muted)]">Contracting service provider</dt>
+          <dd className="font-semibold">Moversly</dd>
+        </div>
+      </dl>
+      <p className="mt-4 text-xs leading-relaxed text-[var(--muted)]">
+        Prototype only. Partner assignments, rates and transit windows are sample configurations, not live confirmations.
+      </p>
+    </aside>
   );
 }
 
@@ -222,7 +223,7 @@ function Partner({ label, name, detail }: { label: string; name: string; detail:
   );
 }
 
-function Row({ label, small, children }: { label: string; small?: boolean; children: ReactNode }) {
+export function Row({ label, small, children }: { label: string; small?: boolean; children: ReactNode }) {
   return (
     <div className={`flex items-baseline justify-between gap-4 ${small ? "text-xs text-[var(--muted)] sm:text-sm" : ""}`}>
       <dt className="min-w-0">{label}</dt>
