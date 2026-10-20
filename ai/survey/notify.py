@@ -54,7 +54,8 @@ def _details(lead: dict) -> str:
     extras = lead.get("extras") or {}
     rows = [
         ("Name", lead.get("name")), ("Email", lead.get("email")), ("Phone", lead.get("phone")),
-        ("Moving from", _country(lead.get("from_country"))), ("Moving to", _country(lead.get("to_country"))),
+        ("Moving from", _country(lead.get("from_country"))),
+        ("Moving to", extras.get("to_place") or _country(lead.get("to_country"))),
         ("Moving date", _date(lead.get("move_date"))), ("What's moving", MOVE_TYPES.get(lead.get("move_type"), lead.get("move_type"))),
         ("Car or motorbike", extras.get("vehicle", "").capitalize() or None),
         ("Pets", extras.get("pets", "").capitalize() or None),
@@ -106,7 +107,8 @@ def _send_later(subject: str, body: str, reply_to: str | None) -> None:
 
 
 def new_lead(lead: dict) -> None:
-    route = f"{_country(lead.get('from_country'))} → {_country(lead.get('to_country'))}"
+    to = (lead.get("extras") or {}).get("to_place") or _country(lead.get("to_country"))
+    route = f"{_country(lead.get('from_country'))} → {to}"
     body = (f"A new moving enquiry came in through the {SOURCES.get(lead.get('source'), 'website')}.\n\n"
             f"{_details(lead)}\n\nYou'll get a second email if they finish the room survey."
             f"{_transcript(lead)}\n")

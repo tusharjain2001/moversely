@@ -15,9 +15,12 @@ export default function MoveSummary() {
   if (!isClient) return <div className="min-h-dvh" />;
   const move = loadMove();
   const from = move && countryBySlug(move.from);
-  const to = move && countryBySlug(move.to);
+  const to = move && (countryBySlug(move.to) ?? (move.to ? otherCountry(move.to) : undefined));
   return move && from && to ? <Summary move={move} from={from} to={to} /> : <MissingMove />;
 }
+
+/** A destination we have no customs summary for yet, e.g. "Japan". */
+const otherCountry = (name: string): Country => ({ slug: name, name, import: null, export: null, fidi: {} });
 
 function MissingMove() {
   return (
@@ -72,7 +75,7 @@ function Summary({ move, from, to }: { move: MoveDetails; from: Country; to: Cou
           </span>
           <span className="opacity-50">→</span>
           <span>
-            {to.name}
+            {move.toPlace ?? to.name}
           </span>
         </p>
         <p className="mt-1 text-sm opacity-70">
@@ -166,8 +169,9 @@ function CustomsCard({
       <section className="mt-4 rounded-3xl border border-dashed border-[var(--line)] p-5">
         <h3 className="font-semibold">{title}</h3>
         <p className="mt-2 text-sm text-[var(--muted)]">
-          There is no FIDI {kind} guide for {country.name}. Usually only the documents above are needed, but check with your
-          mover.
+          {countryBySlug(country.slug)
+            ? `There is no FIDI ${kind} guide for ${country.name}. Usually only the documents above are needed, but check with your mover.`
+            : `We don't have a customs summary for ${country.name} yet. Our team will send you the full checklist with your quote.`}
         </p>
       </section>
     );

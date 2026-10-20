@@ -2,12 +2,13 @@
 
 import { ArrowRight } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { COUNTRIES } from "@/lib/countries";
+import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from "react";
+import { COUNTRIES, countryBySlug } from "@/lib/countries";
 import { saveLead } from "@/lib/crm";
-import { MOVE_TYPES, type MoveDetails, loadMove, saveMove, useIsClient } from "@/lib/move";
+import { MOVE_TYPES, type MoveDetails, ORIGIN, loadMove, saveMove, useIsClient } from "@/lib/move";
+import { type Autocomplete, type Google, describePlace, loadPlaces, placesEnabled } from "@/lib/places";
 
-const EMPTY: MoveDetails = { name: "", email: "", phone: "", from: "", to: "", date: "", moveType: "full" };
+const EMPTY: MoveDetails = { name: "", email: "", phone: "", from: ORIGIN, to: "", date: "", moveType: "full" };
 
 const inputClass =
   "mt-1.5 w-full min-w-0 rounded-xl border border-[var(--line)] bg-[var(--paper)] px-3 py-2.5 text-base text-[var(--ink)] outline-none transition focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25";
@@ -21,8 +22,8 @@ export default function MoveForm() {
 }
 
 function validate(m: MoveDetails): string | null {
-  if (!m.from || !m.to) return "Choose where you are moving from and to.";
-  if (m.from === m.to) return "“Moving from” and “Moving to” must be different countries.";
+  if (!m.to) return "Choose where you are moving to from the suggestions.";
+  if (m.to === m.from) return "Choose a destination outside Singapore.";
   if (!m.date) return "Choose your moving date.";
   if (!m.name.trim()) return "Enter your name.";
   if (!/^\S+@\S+\.\S+$/.test(m.email)) return "Enter a valid email address.";
@@ -32,7 +33,7 @@ function validate(m: MoveDetails): string | null {
 
 function Form() {
   const router = useRouter();
-  const [move, setMove] = useState<MoveDetails>(() => loadMove() ?? EMPTY);
+  const [move, setMove] = useState<MoveDetails>(() => ({ ...EMPTY, ...loadMove(), from: ORIGIN }));
   const [error, setError] = useState<string | null>(null);
   const set = <K extends keyof MoveDetails>(key: K, value: MoveDetails[K]) => setMove((m) => ({ ...m, [key]: value }));
   const today = new Date().toISOString().slice(0, 10);
@@ -60,27 +61,13 @@ function Form() {
       <p className="mt-1 text-sm text-[var(--muted)]">Step 1 of 3. Takes under a minute.</p>
 
       <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3.5 sm:mt-5 sm:gap-x-4 sm:gap-y-4">
-        <label className="block min-w-0 text-sm font-medium">
+        <div className="col-span-2 block min-w-0 text-sm font-medium sm:col-span-1">
           Moving from
-          <select value={move.from} onChange={(e) => set("from", e.target.value)} className={inputClass}>
-            <option value="">Select</option>
-            {COUNTRIES.map((c) => (
-              <option key={c.slug} value={c.slug}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block min-w-0 text-sm font-medium">
+          <div className={`${inputClass} cursor-default text-[var(--muted)]`}>Singapore</div>
+        </div>
+        <label className="col-span-2 block min-w-0 text-sm font-medium sm:col-span-1">
           Moving to
-          <select value={move.to} onChange={(e) => set("to", e.target.value)} className={inputClass}>
-            <option value="">Select</option>
-            {COUNTRIES.map((c) => (
-              <option key={c.slug} value={c.slug} disabled={c.slug === move.from}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <Destination move={move} setMove={setMove} />
         </label>
         <fieldset className="col-span-2">
           <legend className="text-sm font-medium">What are you moving?</legend>
@@ -135,5 +122,72 @@ function Form() {
         Next: scan your rooms <ArrowRight size={18} weight="bold" className="transition-transform group-hover:translate-x-1" />
       </button>
     </form>
+  );
+}
+
+/**
+ * Google search for the destination: a city, region or country. The picked
+ * place's country decides which customs documents the summary shows. Without
+ * Google (no key, or it failed to load) it is a plain list of our countries.
+ */
+function Destination({ move, setMove }: { move: MoveDetails; setMove: Dispatch<SetStateAction<MoveDetails>> }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [text, setText] = useState(() => move.toPlace ?? countryBySlug(move.to)?.name ?? move.to);
+  const [failed, setFailed] = useState(!placesEnabled);
+
+  useEffect(() => {
+    if (failed) return;
+    let cancelled = false;
+    let google: Google | null = null;
+    let ac: Autocomplete | null = null;
+    loadPlaces().then((g) => {
+      if (cancelled) return;
+      if (!g || !inputRef.current) return setFailed(true);
+      google = g;
+      const box = new g.maps.places.Autocomplete(inputRef.current, { fields: ["address_components", "name"] });
+      box.addListener("place_changed", () => {
+        const picked = describePlace(box.getPlace());
+        if (!picked) return;
+        setText(picked.label);
+        setMove((m) => ({ ...m, to: picked.country, toPlace: picked.label }));
+      });
+      ac = box;
+    });
+    return () => {
+      cancelled = true;
+      if (google && ac) google.maps.event.clearInstanceListeners(ac);
+    };
+  }, [failed, setMove]);
+
+  if (failed)
+    return (
+      <select
+        value={countryBySlug(move.to) ? move.to : ""}
+        onChange={(e) => setMove((m) => ({ ...m, to: e.target.value, toPlace: undefined }))}
+        className={inputClass}
+      >
+        <option value="">Select</option>
+        {COUNTRIES.filter((c) => c.slug !== ORIGIN).map((c) => (
+          <option key={c.slug} value={c.slug}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+    );
+  return (
+    <input
+      ref={inputRef}
+      value={text}
+      placeholder="City or country"
+      autoComplete="off"
+      onChange={(e) => {
+        setText(e.target.value);
+        // Typed text is not a place yet: the visitor picks one from Google's list.
+        setMove((m) => (m.to ? { ...m, to: "", toPlace: undefined } : m));
+      }}
+      // Enter picks a suggestion; it must not submit the form.
+      onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
+      className={inputClass}
+    />
   );
 }

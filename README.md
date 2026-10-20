@@ -64,6 +64,7 @@ environment variables on a server; see `ai/.env.example`):
 | `CHAT_AI_EXTRA` | turns off Qwen3 "thinking" | `{}` for services that don't accept `reasoning_effort` |
 | `ADMIN_PASSWORD` | in `ai/.env` | a strong password |
 | `SMTP_USER` / `SMTP_PASSWORD` / `LEAD_EMAIL_TO` | in `ai/.env` | the same, as server secrets (Colab: Secrets panel) |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (website) | in `web/.env.local`: Google search for "Moving to" (Maps JavaScript API + Places API) | the same key, restricted to the site's domain; without it the form shows a country list |
 | `NEXT_PUBLIC_AI_API_URL` (website) | unset: `/ai` forwarded to localhost:8000 | the AI server's public URL |
 
 1. Create the Postgres database and set `DATABASE_URL`. Tables are created on first start.

@@ -244,3 +244,18 @@ input[type="date"]::-webkit-date-and-time-value {
   background: var(--tape)
     repeating-linear-gradient(90deg, rgb(0 0 0 / 0.55) 0 1.5px, transparent 1.5px 5px) bottom / 100% 7px no-repeat;
 }
+
+/* Google Places suggestions under the "Moving to" field */
+.pac-container {
+  margin-top: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px -20px rgb(22 24 29 / 0.45);
+  font-family: inherit;
+}
+.pac-item {
+  padding: 8px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+}

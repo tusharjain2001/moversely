@@ -216,7 +216,7 @@ function Login(props: {
 function LeadDetail({ lead, onBack }: { lead: Lead; onBack: () => void }) {
   const extras = lead.extras ?? {};
   const rows: [string, string][] = [
-    ["Route", `${country(lead.from_country)} → ${country(lead.to_country)}`],
+    ["Route", `${country(lead.from_country)} → ${extras.to_place ?? country(lead.to_country)}`],
     ["Moving date", moveDate(lead.move_date)],
     ["Moving", MOVE_TYPES.find((t) => t.value === lead.move_type)?.label ?? lead.move_type ?? "?"],
     ["Email", lead.email ?? "?"],
