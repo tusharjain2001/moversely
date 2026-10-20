@@ -1,56 +1,31 @@
 @import "tailwindcss";
 
-/* Brand: deep teal with a warm orange highlight (as on the client's
-   moving-to-usa site). */
+/* Brand: blue and white, always light (the client's choice). */
 :root {
-  --paper: #f3f7f7;
+  color-scheme: light;
+  --paper: #f4f7fc;
   --card: #ffffff;
-  --ink: #10292b;
-  --muted: #557073;
-  --line: #d6e4e4;
-  --chip: #e5efef;
-  --primary: #077d7d;
+  --ink: #0d1b3e;
+  --muted: #5a6a88;
+  --line: #e0e7f3;
+  --chip: #edf2fb;
+  --primary: #0a66c2;
   --on-primary: #ffffff;
-  --tape: #f59024; /* highlight orange, also the logo's tape */
-  --accent: #077d7d;
+  --tape: #7ab6f2; /* light-blue highlight */
+  --logo-dot: #14b8a6; /* the teal full stop in the Moversly logo */
+  --accent: #0a66c2;
   --ok: #1f7a3f;
   --ok-bg: #e3f3e8;
   --warn: #8a5a00;
   --warn-bg: #fdf0d2;
   --bad: #b42318;
   --bad-bg: #fde8e6;
-  /* Feature panels stay dark teal in both themes */
-  --night-a: #0a3637;
-  --night-b: #0e5a5b;
-  --on-night: #eef7f6;
-  --glow-a: rgb(8 152 152 / 0.16);
-  --glow-b: rgb(245 144 36 / 0.1);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #0a1617;
-    --card: #102224;
-    --ink: #e7f1f0;
-    --muted: #8ea8a9;
-    --line: #1e3537;
-    --chip: #172c2e;
-    --primary: #19b5b5;
-    --on-primary: #03201f;
-    --tape: #f79a35;
-    --accent: #4fd0cf;
-    --ok: #6fd394;
-    --ok-bg: #16301f;
-    --warn: #f2c35b;
-    --warn-bg: #33280f;
-    --bad: #ff8a80;
-    --bad-bg: #3a1714;
-    --night-a: #0d2e30;
-    --night-b: #11494a;
-    --on-night: #e7f1f0;
-    --glow-a: rgb(25 181 181 / 0.14);
-    --glow-b: rgb(247 154 53 / 0.07);
-  }
+  /* Feature panels: brand blue, barely shaded */
+  --night-a: #0a66c2;
+  --night-b: #0b5aab;
+  --on-night: #f2f6ff;
+  --glow-a: rgb(10 102 194 / 0.13);
+  --glow-b: rgb(122 182 242 / 0.18);
 }
 
 .night-panel {
@@ -90,7 +65,7 @@ html {
     animation: glow-drift 16s ease-in-out infinite alternate;
   }
 
-  /* Hover: cards lift with a soft teal shadow. */
+  /* Hover: cards lift with a soft blue shadow. */
   .lift {
     transition:
       translate 0.4s cubic-bezier(0.16, 1, 0.3, 1),
@@ -99,7 +74,7 @@ html {
   }
   .lift:hover {
     translate: 0 -4px;
-    box-shadow: 0 22px 44px -24px rgb(7 125 125 / 0.45);
+    box-shadow: 0 22px 44px -24px rgb(10 102 194 / 0.4);
     border-color: var(--primary);
   }
 
@@ -236,14 +211,6 @@ input[type="date"]::-webkit-date-and-time-value {
   background-position: bottom;
 }
 
-.tape-mark {
-  display: inline-block;
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  background: var(--tape)
-    repeating-linear-gradient(90deg, rgb(0 0 0 / 0.55) 0 1.5px, transparent 1.5px 5px) bottom / 100% 7px no-repeat;
-}
 
 /* Google Places suggestions under the "Moving to" field */
 .pac-container {

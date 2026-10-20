@@ -6,6 +6,7 @@ import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { countryBySlug } from "@/lib/countries";
 import { type Lead, adminLead, adminLeads } from "@/lib/crm";
 import { MOVE_TYPES, useIsClient } from "@/lib/move";
+import Logo from "@/components/Logo";
 
 const PW_KEY = "ai-room-survey:admin";
 
@@ -89,8 +90,7 @@ function Admin() {
     <div className="mx-auto w-full max-w-6xl px-4 pb-16 pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2">
-          <span className="tape-mark" aria-hidden />
-          <span className="font-semibold tracking-tight">AI Move Survey</span>
+          <Logo />
           <span className="rounded-full bg-[var(--chip)] px-2 py-0.5 text-xs font-medium text-[var(--muted)]">Team</span>
         </Link>
         <div className="flex gap-2">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import Logo from "@/components/Logo";
 
 const STEPS = [
   { href: "/", label: "Your move" },
@@ -13,15 +14,14 @@ export default function StepHeader({ step, right }: { step: 0 | 1 | 2; right?: R
     <header className="print:hidden">
       <div className="flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <span className="tape-mark" aria-hidden />
-          <span className="font-semibold tracking-tight">AI Move Survey</span>
+          <Logo />
         </Link>
         {right}
       </div>
       <ol className="mt-5 grid grid-cols-3 gap-2 text-xs">
         {STEPS.map((s, i) => (
           <li key={s.href}>
-            <span className={`block h-1.5 rounded-full ${i <= step ? "bg-[var(--tape)]" : "bg-[var(--line)]"}`} />
+            <span className={`block h-1.5 rounded-full ${i <= step ? "bg-[var(--primary)]" : "bg-[var(--line)]"}`} />
             <span className={`mt-1.5 block font-medium ${i === step ? "" : "text-[var(--muted)]"}`}>
               {i + 1}. {s.label}
             </span>

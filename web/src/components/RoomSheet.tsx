@@ -75,7 +75,7 @@ export default function RoomSheet({ room, units, survey, onClose }: Props) {
               onClick={() => setCamera(true)}
               className="flex w-full items-center gap-4 rounded-2xl bg-[var(--primary)] p-5 text-left text-[var(--on-primary)]"
             >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--tape)] text-2xl text-black">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--chip)] text-2xl text-[var(--primary)]">
                 ●
               </span>
               <span>
@@ -205,8 +205,8 @@ function Progress({ room }: { room: Room }) {
         <p className="font-semibold">{uploading ? "Uploading video" : room.stage || "Analysing"}</p>
         <p className="font-mono text-sm tabular-nums text-[var(--muted)]">{Math.round(pct)}%</p>
       </div>
-      <div className="tape mt-3 h-3 overflow-hidden rounded-full bg-[var(--chip)]">
-        <div className="h-full rounded-full bg-[var(--tape)] transition-[width] duration-700" style={{ width: `${pct}%` }} />
+      <div className="mt-3 h-3 overflow-hidden rounded-full bg-[var(--chip)]">
+        <div className="h-full rounded-full bg-[var(--primary)] transition-[width] duration-700" style={{ width: `${pct}%` }} />
       </div>
       <p className="mt-3 text-sm text-[var(--muted)]">
         {uploading

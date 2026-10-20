@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Move Survey",
+  title: "MOVERSLY",
   description:
     "Record each room on your phone. AI measures your furniture, estimates your shipment volume and lists the customs documents for your route.",
 };
@@ -22,10 +22,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f3f7f7" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a1617" },
-  ],
+  themeColor: "#f4f7fc",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

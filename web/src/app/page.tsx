@@ -16,6 +16,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import MoveForm from "@/components/MoveForm";
 import { COUNTRIES } from "@/lib/countries";
+import Logo from "@/components/Logo";
 
 const NAV = [
   { href: "#how", label: "How it works" },
@@ -67,8 +68,7 @@ export default function Home() {
       <header className="sticky top-0 z-20 border-b border-[var(--line)] bg-[var(--paper)]/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <span className="tape-mark" aria-hidden />
-            <span className="font-semibold tracking-tight">AI Move Survey</span>
+            <Logo />
           </Link>
           <nav className="hidden items-center gap-8 text-sm text-[var(--muted)] md:flex">
             {NAV.map((n) => (
@@ -144,7 +144,7 @@ export default function Home() {
             <span className="absolute left-[18px] top-2 h-[calc(100%-6rem)] w-px bg-[var(--line)] md:left-0 md:top-[18px] md:h-px md:w-full" aria-hidden />
             {STEPS.map((s, i) => (
               <li key={s.title} className="reveal group relative grid grid-cols-[auto_1fr] gap-4 md:block">
-                <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[var(--tape)] font-mono text-sm font-semibold text-black ring-4 ring-[var(--paper)] transition duration-300 group-hover:scale-110">
+                <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[var(--primary)] font-mono text-sm font-semibold text-white ring-4 ring-[var(--paper)] transition duration-300 group-hover:scale-110">
                   {i + 1}
                 </span>
                 <div className="md:mt-6">
@@ -159,20 +159,30 @@ export default function Home() {
         <section className="mx-auto max-w-6xl px-4 pb-20 sm:px-6 md:pb-28">
           <h2 className="reveal max-w-[20ch] text-3xl font-semibold tracking-tight sm:text-4xl">No home visit. No tape measure. No guesswork.</h2>
           <div className="mt-10 grid gap-3 md:grid-cols-6">
-            <div className="reveal lift sheen group flex min-h-64 flex-col justify-between rounded-3xl night-panel p-7 text-[var(--on-night)] md:col-span-4">
-              <Cube size={32} weight="duotone" className="transition duration-500 group-hover:rotate-[20deg] group-hover:scale-110" />
-              <div>
+            <div className="reveal lift sheen group relative flex min-h-64 flex-col justify-between overflow-hidden rounded-3xl bg-[var(--primary)] p-7 text-white md:col-span-4">
+              <Cube
+                size={220}
+                weight="thin"
+                aria-hidden
+                className="pointer-events-none absolute -bottom-10 -right-6 opacity-15 transition duration-700 group-hover:rotate-[12deg]"
+              />
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
+                <Cube size={28} weight="duotone" className="transition duration-500 group-hover:rotate-[20deg] group-hover:scale-110" />
+              </span>
+              <div className="relative">
                 <h3 className="text-2xl font-semibold tracking-tight">Measured in 3D, not guessed</h3>
-                <p className="mt-2 max-w-[48ch] opacity-70">
+                <p className="mt-2 max-w-[48ch] text-white/80">
                   The AI finds each piece of furniture, works out how far away it is, and measures its length, width and height.
                 </p>
               </div>
             </div>
-            <div className="reveal lift tape group flex flex-col justify-between rounded-3xl bg-[var(--tape)] p-7 text-black md:col-span-2">
-              <DeviceMobile size={32} weight="duotone" className="transition duration-300 group-hover:-rotate-12 group-hover:scale-110" />
+            <div className="reveal lift group flex flex-col justify-between rounded-3xl border border-[var(--line)] bg-[var(--chip)] p-7 md:col-span-2">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--primary)] text-white">
+                <DeviceMobile size={28} weight="duotone" className="transition duration-300 group-hover:-rotate-12 group-hover:scale-110" />
+              </span>
               <div className="mt-10">
                 <h3 className="text-xl font-semibold tracking-tight">No app to install</h3>
-                <p className="mt-2 text-black/70">Works in the browser on any iPhone or Android.</p>
+                <p className="mt-2 text-[var(--muted)]">Works in the browser on any iPhone or Android.</p>
               </div>
             </div>
             <Tile icon={<PencilSimple size={28} weight="duotone" />} title="You stay in control">
@@ -242,7 +252,7 @@ export default function Home() {
             </div>
             <a
               href="#start"
-              className="btn-accent group inline-flex shrink-0 items-center gap-2 rounded-full bg-[var(--tape)] px-6 py-3.5 font-semibold text-black"
+              className="btn-accent group inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-6 py-3.5 font-semibold text-[var(--primary)]"
             >
               Get started <ArrowRight size={18} weight="bold" className="transition-transform group-hover:translate-x-1" />
             </a>
@@ -253,8 +263,7 @@ export default function Home() {
       <footer className="border-t border-[var(--line)]">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 text-sm text-[var(--muted)] sm:px-6 md:flex-row md:justify-between">
           <div className="flex items-center gap-2 text-[var(--ink)]">
-            <span className="tape-mark" aria-hidden />
-            <span className="font-semibold tracking-tight">AI Move Survey</span>
+            <Logo />
           </div>
           <p className="max-w-[70ch] text-xs leading-relaxed">
             Sizes are AI estimates. Customs summaries are based on the FIDI Customs Guides and are for information only. We

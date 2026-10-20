@@ -90,7 +90,7 @@ function Summary({ move, from, to }: { move: MoveDetails; from: Country; to: Cou
               item{itemCount === 1 ? "" : "s"}
             </p>
           </div>
-          <div className="tape self-start rounded-xl bg-[var(--tape)] px-4 py-3 text-black">
+          <div className="self-start rounded-xl bg-white/15 px-4 py-3 text-white">
             <p className="text-xs font-medium uppercase tracking-wider opacity-70">Suggested shipping</p>
             <p className="font-semibold">{shippingGuide(total)}</p>
           </div>

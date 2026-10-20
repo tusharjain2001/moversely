@@ -61,7 +61,7 @@ function Survey() {
           {units === "imperial" ? `${total.toFixed(1)} m³` : `${Math.round(total * M3_TO_FT3).toLocaleString()} ft³`} ·{" "}
           {itemCount} item{itemCount === 1 ? "" : "s"} · {scanned}/{rooms.length} rooms
         </p>
-        <div className="tape mt-5 rounded-xl bg-[var(--tape)] px-4 py-3 text-black">
+        <div className="mt-5 rounded-xl bg-white/15 px-4 py-3 text-white">
           <p className="text-xs font-medium uppercase tracking-wider opacity-70">Suggested shipping</p>
           <p className="font-semibold">{shippingGuide(total)}</p>
         </div>
