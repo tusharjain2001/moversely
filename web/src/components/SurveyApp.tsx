@@ -66,105 +66,125 @@ function Survey() {
   const scanned = rooms.filter((r) => r.status === "done").length;
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 pb-16 pt-[max(1.25rem,env(safe-area-inset-top))]">
+    <div className="mx-auto w-full max-w-2xl px-4 pb-16 pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-6 lg:max-w-5xl">
       <StepHeader step={1} right={<UnitToggle units={units} onChange={setUnits} />} />
 
-      <section className="mt-6 night-panel rounded-3xl p-6 text-[var(--on-night)]">
-        <p className="text-sm opacity-70">Estimated shipment volume</p>
-        <p className="mt-1 text-5xl font-semibold tabular-nums tracking-tight">{formatVolume(total, units)}</p>
-        <p className="mt-1 text-sm opacity-70">
-          {units === "imperial" ? `${total.toFixed(1)} m³` : `${Math.round(total * M3_TO_FT3).toLocaleString()} ft³`} ·{" "}
-          {itemCount} item{itemCount === 1 ? "" : "s"} · {scanned}/{rooms.length} rooms
-        </p>
-        <div className="mt-5 rounded-xl bg-white/15 px-4 py-3 text-white">
-          <p className="text-xs font-medium uppercase tracking-wider opacity-70">Suggested shipping</p>
-          <p className="font-semibold">{shippingGuide(total)}</p>
-        </div>
-      </section>
-
-      {total === 0 && (
-        <section className="mt-6 grid grid-cols-3 gap-2 text-center">
-          {[
-            ["1", "Record", "a short video of each room"],
-            ["2", "AI measures", "every item in 3D"],
-            ["3", "Review", "and fix anything it missed"],
-          ].map(([n, t, d]) => (
-            <div key={n} className="rounded-2xl border border-[var(--line)] bg-[var(--card)] p-3">
-              <p className="font-mono text-xs text-[var(--muted)]">{n}</p>
-              <p className="mt-1 text-sm font-semibold">{t}</p>
-              <p className="mt-0.5 text-xs leading-snug text-[var(--muted)]">{d}</p>
+      {/* Phones: one column. Laptops: volume and steps stay beside the rooms. */}
+      <div className="lg:mt-8 lg:grid lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-8">
+        <aside className="lg:sticky lg:top-6">
+          <section className="mt-6 night-panel rounded-3xl p-6 text-[var(--on-night)] lg:mt-0">
+            <p className="text-sm opacity-70">Estimated shipment volume</p>
+            <p className="mt-1 text-5xl font-semibold tabular-nums tracking-tight">{formatVolume(total, units)}</p>
+            <p className="mt-1 text-sm opacity-70">
+              {units === "imperial" ? `${total.toFixed(1)} m³` : `${Math.round(total * M3_TO_FT3).toLocaleString()} ft³`} ·{" "}
+              {itemCount} item{itemCount === 1 ? "" : "s"} · {scanned}/{rooms.length} rooms
+            </p>
+            <div className="mt-5 rounded-xl bg-white/15 px-4 py-3 text-white">
+              <p className="text-xs font-medium uppercase tracking-wider opacity-70">Suggested shipping</p>
+              <p className="font-semibold">{shippingGuide(total)}</p>
             </div>
-          ))}
-        </section>
-      )}
+          </section>
 
-      <section className="mt-8">
-        <h1 className="text-lg font-semibold">Your rooms</h1>
-        <ul className="mt-3 grid grid-cols-2 gap-2">
-          {rooms.map((r) => (
-            <li key={r.id}>
-              <RoomCard room={r} units={units} onOpen={() => setOpenId(r.id)} />
-            </li>
-          ))}
-          <li>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!newRoom.trim()) return;
-                setOpenId(survey.addRoom(newRoom));
-                setNewRoom("");
-              }}
-              className="flex h-full min-h-36 flex-col justify-between gap-4 rounded-2xl border-2 border-dashed border-[var(--line)] p-4 transition focus-within:border-[var(--primary)]"
-            >
-              <span className="grid h-11 w-11 place-items-center rounded-xl border border-dashed border-[var(--primary)]/40 text-[var(--primary)]">
-                <Plus size={22} weight="bold" aria-hidden />
-              </span>
-              <span>
-                <input
-                  value={newRoom}
-                  onChange={(e) => setNewRoom(e.target.value)}
-                  placeholder="Add a room…"
-                  aria-label="Room name"
-                  className="w-full bg-transparent font-semibold outline-none placeholder:font-semibold placeholder:text-[var(--muted)]"
-                />
-                <button
-                  disabled={!newRoom.trim()}
-                  className="mt-2 rounded-full border border-[var(--primary)] px-3.5 py-2 text-sm font-semibold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-[var(--on-primary)] disabled:pointer-events-none disabled:opacity-40"
+          {total === 0 && (
+            <section className="mt-6 grid grid-cols-3 gap-2 text-center lg:mt-4 lg:grid-cols-1">
+              {[
+                ["1", "Record", "a short video of each room"],
+                ["2", "AI measures", "every item in 3D"],
+                ["3", "Review", "and fix anything it missed"],
+              ].map(([n, t, d]) => (
+                <div
+                  key={n}
+                  className="rounded-2xl border border-[var(--line)] bg-[var(--card)] p-3 lg:flex lg:items-center lg:gap-3 lg:text-left"
                 >
-                  + Add room
-                </button>
-              </span>
-            </form>
-          </li>
-        </ul>
-      </section>
+                  <p className="font-mono text-xs text-[var(--muted)] lg:grid lg:h-8 lg:w-8 lg:shrink-0 lg:place-items-center lg:rounded-full lg:bg-[var(--chip)] lg:font-sans lg:font-semibold lg:text-[var(--primary)]">
+                    {n}
+                  </p>
+                  <div>
+                    <p className="mt-1 text-sm font-semibold lg:mt-0">{t}</p>
+                    <p className="mt-0.5 text-xs leading-snug text-[var(--muted)]">{d}</p>
+                  </div>
+                </div>
+              ))}
+            </section>
+          )}
+        </aside>
 
-      {itemCount > 0 && (
-        <section className="mt-6 flex flex-wrap gap-2">
-          <button onClick={() => downloadCsv(rooms)} className="rounded-full bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-[var(--on-primary)]">
-            Download inventory (CSV)
-          </button>
-          <button
-            onClick={() => confirm("Start a new survey? This clears every room.") && survey.resetAll()}
-            className="rounded-full border border-[var(--line)] px-4 py-2.5 text-sm"
-          >
-            New survey
-          </button>
-        </section>
-      )}
+        <div>
+          <section className="mt-8 lg:mt-0">
+            <h1 className="text-lg font-semibold">Your rooms</h1>
+            <ul className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-3 lg:gap-3">
+              {rooms.map((r) => (
+                <li key={r.id}>
+                  <RoomCard room={r} units={units} onOpen={() => setOpenId(r.id)} />
+                </li>
+              ))}
+              <li>
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!newRoom.trim()) return;
+                    setOpenId(survey.addRoom(newRoom));
+                    setNewRoom("");
+                  }}
+                  className="flex h-full min-h-36 flex-col justify-between gap-4 rounded-2xl border-2 border-dashed border-[var(--line)] p-4 transition focus-within:border-[var(--primary)]"
+                >
+                  <span className="grid h-11 w-11 place-items-center rounded-xl border border-dashed border-[var(--primary)]/40 text-[var(--primary)]">
+                    <Plus size={22} weight="bold" aria-hidden />
+                  </span>
+                  <span>
+                    <input
+                      value={newRoom}
+                      onChange={(e) => setNewRoom(e.target.value)}
+                      placeholder="Add a room…"
+                      aria-label="Room name"
+                      className="w-full bg-transparent font-semibold outline-none placeholder:font-semibold placeholder:text-[var(--muted)]"
+                    />
+                    <button
+                      disabled={!newRoom.trim()}
+                      className="mt-2 rounded-full border border-[var(--primary)] px-3.5 py-2 text-sm font-semibold text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-[var(--on-primary)] disabled:pointer-events-none disabled:opacity-40"
+                    >
+                      + Add room
+                    </button>
+                  </span>
+                </form>
+              </li>
+            </ul>
+          </section>
 
-      <nav className="mt-8 flex items-center justify-between gap-3">
-        <Link href="/" className="rounded-full border border-[var(--line)] px-5 py-3 text-sm font-medium">
-          ← Back
-        </Link>
-        <Link href="/quotation" className="rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--on-primary)]">
-          Next: quotation →
-        </Link>
-      </nav>
+          {itemCount > 0 && (
+            <section className="mt-6 flex flex-wrap gap-2">
+              <button
+                onClick={() => downloadCsv(rooms)}
+                className="rounded-full bg-[var(--primary)] px-4 py-2.5 text-sm font-medium text-[var(--on-primary)]"
+              >
+                Download inventory (CSV)
+              </button>
+              <button
+                onClick={() => confirm("Start a new survey? This clears every room.") && survey.resetAll()}
+                className="rounded-full border border-[var(--line)] px-4 py-2.5 text-sm"
+              >
+                New survey
+              </button>
+            </section>
+          )}
 
-      <footer className="mt-10 text-xs leading-relaxed text-[var(--muted)]">
-        Sizes are AI estimates from your video. Items marked “Check size” or “Estimate” are worth a quick look before booking.
-      </footer>
+          <nav className="mt-8 flex items-center justify-between gap-3">
+            <Link href="/" className="rounded-full border border-[var(--line)] px-5 py-3 text-sm font-medium">
+              ← Back
+            </Link>
+            <Link
+              href="/quotation"
+              className="rounded-full bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-[var(--on-primary)]"
+            >
+              Next: quotation →
+            </Link>
+          </nav>
+
+          <footer className="mt-10 text-xs leading-relaxed text-[var(--muted)]">
+            Sizes are AI estimates from your video. Items marked “Check size” or “Estimate” are worth a quick look before booking.
+          </footer>
+        </div>
+      </div>
 
       {open && <RoomSheet room={open} units={units} survey={survey} onClose={() => setOpenId(null)} />}
     </div>
