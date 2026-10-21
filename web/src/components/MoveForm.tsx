@@ -16,9 +16,9 @@ const inputClass =
 /** The move-details form: step 1 of the flow, shown in the landing page hero. */
 export default function MoveForm() {
   const isClient = useIsClient();
-  // Saved details prefill the form, so it renders on the client; the
-  // placeholder keeps the hero from jumping while it loads.
-  return isClient ? <Form /> : <div className="min-h-[620px] rounded-3xl border border-[var(--line)] bg-[var(--card)]" />;
+  // The server sends the empty form so it shows at once; in the browser it is
+  // drawn again with any saved details filled in.
+  return <Form key={isClient ? "saved" : "empty"} saved={isClient} />;
 }
 
 function validate(m: MoveDetails): string | null {
@@ -31,12 +31,13 @@ function validate(m: MoveDetails): string | null {
   return null;
 }
 
-function Form() {
+function Form({ saved }: { saved: boolean }) {
   const router = useRouter();
-  const [move, setMove] = useState<MoveDetails>(() => ({ ...EMPTY, ...loadMove(), from: ORIGIN }));
+  const [move, setMove] = useState<MoveDetails>(() => ({ ...EMPTY, ...(saved ? loadMove() : null), from: ORIGIN }));
   const [error, setError] = useState<string | null>(null);
   const set = <K extends keyof MoveDetails>(key: K, value: MoveDetails[K]) => setMove((m) => ({ ...m, [key]: value }));
-  const today = new Date().toISOString().slice(0, 10);
+  // Only in the browser: the server's "today" can differ from the visitor's.
+  const today = saved ? new Date().toISOString().slice(0, 10) : undefined;
 
   return (
     <form
