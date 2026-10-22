@@ -1,0 +1,8 @@
+# The main API on a server that sends room videos to Modal (SURVEY_GPU=modal):
+# no GPU and no AI models, so none of the heavy packages in requirements.txt.
+fastapi[standard]
+python-multipart
+sqlalchemy==2.0.55
+httpx
+modal==1.6.1
+boto3

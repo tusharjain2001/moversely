@@ -3,7 +3,8 @@
 Where the data lives is one setting, DATABASE_URL:
 - this laptop (default): a SQLite file, ai/data/survey.db
 - a real server:         postgresql+psycopg://user:password@host:5432/dbname
-Tables are created on start-up, so a new, empty database needs no setup.
+- AWS:                   dynamodb (see db_dynamo.py)
+SQL tables are created on start-up, so a new, empty database needs no setup.
 `scripts/copy_db.py` moves existing data from one database to another.
 """
 
@@ -149,3 +150,8 @@ def get_messages(cid: str) -> list[dict]:
         rows = c.execute(select(messages.c.role, messages.c.text, messages.c.created_at)
                          .where(messages.c.conversation_id == cid).order_by(messages.c.id)).mappings().all()
         return [dict(r) for r in rows]
+
+
+if DATABASE_URL == "dynamodb":
+    from .db_dynamo import (add_message, get_conversation, get_lead, get_messages, list_leads,  # noqa: E402, F811
+                            new_conversation, save_conversation, save_lead, save_survey)

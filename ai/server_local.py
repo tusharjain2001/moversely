@@ -91,4 +91,4 @@ if __name__ == "__main__":
 
         get_models()  # load before the first request instead of during it
         backend = LocalJobs()
-    uvicorn.run(create_app(backend), host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
+    uvicorn.run(create_app(backend), host=os.environ.get("HOST", "0.0.0.0"), port=int(os.environ.get("PORT", 8000)))
