@@ -110,27 +110,31 @@ Dev tools: `python scripts/run_video.py video.mp4` prints results for a video;
 
 ## Deploy so the client can test from their phone
 
-### 1. AI API → Modal (serverless GPU)
+### 1. AI worker → Modal (serverless GPU)
 
 ```bash
 cd ai
-.venv\Scripts\modal setup                      # one-time: log in (free account)
-.venv\Scripts\modal deploy modal_app.py
+.venv\Scripts\python -m modal setup             # one-time: log in, pick the client's workspace
+.venv\Scripts\python -m modal deploy modal_app.py
 ```
 
-The deploy prints a URL like `https://<you>--ai-room-survey-api.modal.run`. Check it with
-`<url>/health`. The first build takes ~10 minutes (it bakes the models into the image).
+Only the GPU worker runs on Modal; it has no public URL. The first build takes ~10–20 minutes
+(it bakes the models into the image).
 
 - GPU: NVIDIA T4 (set `GPU = "L4"` in modal_app.py for ~2x speed), starts on demand, shuts down 2 minutes after the last video. The first video
   after idle waits ~30–60 s for the GPU to start.
-- Optional: restrict who can call the API with `SURVEY_ALLOWED_ORIGINS=https://your-site.vercel.app`.
 
-### 2. Website → Vercel
+### 2. Main API (this PC now, AWS later)
 
-1. Push this folder to GitHub, then import it in Vercel.
-2. **Root Directory:** `web`
-3. **Environment variable:** `NEXT_PUBLIC_AI_API_URL` = the Modal URL from step 1.
-4. Deploy. The in-browser camera needs HTTPS, which Vercel provides.
+Add `SURVEY_GPU=modal` to `ai/.env` and start `server_local.py` as usual. It keeps leads, chat
+and lead emails, and sends each video to the Modal worker, so it needs no GPU. The machine must
+be logged in to the same Modal workspace (`modal setup`, or `MODAL_TOKEN_ID` and
+`MODAL_TOKEN_SECRET` on a server).
+
+### 3. Website
+
+Run it next to the main API (the site forwards `/ai/*` to it), or host it elsewhere with
+`NEXT_PUBLIC_AI_API_URL` = the main API's public URL. The in-browser camera needs HTTPS.
 
 ## Known limits (prototype)
 

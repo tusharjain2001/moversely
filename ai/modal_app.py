@@ -1,26 +1,24 @@
-"""Cloud deployment on Modal (serverless GPU: you pay only while a video is
-being processed, and it scales to zero when idle).
+"""The AI on Modal (serverless GPU: you pay only while a video is being
+processed, and it scales to zero when idle).
 
     pip install modal
-    modal setup                  # one-time login
-    modal deploy modal_app.py    # prints the public API URL
+    modal setup                  # one-time login to the workspace
+    modal deploy modal_app.py
 
-Two parts:
-- `api`: a small CPU web server (upload, progress polling). Always cheap.
-- `Surveyor`: the GPU worker that runs the AI. Starts on demand, shuts down
-  two minutes after the last video.
+Only the GPU worker runs here. The main API (website requests, leads, chat,
+lead emails) runs on its own server and sends each video to this worker:
+start it with SURVEY_GPU=modal (see survey/modal_jobs.py).
+
+`Surveyor` starts on demand and shuts down two minutes after the last video.
 """
-
-import uuid
-from pathlib import Path
 
 import modal
 
-APP_NAME = "ai-room-survey"
+from survey.modal_jobs import APP_NAME, progress_store
+
 GPU = "T4"  # cheapest; "L4" is ~2x faster but Modal needs a card on file for it
 
 app = modal.App(APP_NAME)
-progress_store = modal.Dict.from_name(f"{APP_NAME}-jobs", create_if_missing=True)
 
 
 def _bake_models():
@@ -51,14 +49,6 @@ gpu_image = (
     .workdir("/models")
     .add_local_python_source("survey", copy=True, ignore=["**/__pycache__/**"])
     .run_function(_bake_models, gpu=GPU)
-)
-
-web_image = (
-    modal.Image.debian_slim(python_version="3.12")
-    # Chat and leads: set DATABASE_URL (Postgres), ADMIN_PASSWORD and CHAT_AI_* in a
-    # Modal secret named "ai-room-survey" and attach it to `api` (see README).
-    .pip_install("fastapi[standard]", "python-multipart", "sqlalchemy==2.0.55", "psycopg[binary]", "httpx")
-    .add_local_python_source("survey", ignore=["**/__pycache__/**"])
 )
 
 
@@ -99,39 +89,3 @@ class Surveyor:
             return {"error": "Something went wrong while analysing the video."}
         finally:
             os.unlink(path)
-
-
-class ModalJobs:
-    def submit(self, video: bytes, filename: str, room: str) -> str:
-        job_id = uuid.uuid4().hex[:12]
-        progress_store[job_id] = {"status": "queued", "stage": "Starting the AI (first run can take ~1 min)",
-                                  "progress": 0.0}
-        call = Surveyor().process.spawn(job_id, video, Path(filename).suffix or ".mp4", room)
-        progress_store[job_id] = {**progress_store[job_id], "call_id": call.object_id}
-        return job_id
-
-    def status(self, job_id: str) -> dict | None:
-        info = progress_store.get(job_id)
-        if not info or "call_id" not in info:
-            return None
-        base = {k: info.get(k) for k in ("status", "stage", "progress")}
-        try:
-            out = modal.FunctionCall.from_id(info["call_id"]).get(timeout=0)
-        except TimeoutError:
-            return base
-        except modal.exception.OutputExpiredError:
-            return None
-        except Exception:
-            return {**base, "status": "error", "error": "The AI worker stopped unexpectedly. Please try again."}
-        if "error" in out:
-            return {**base, "status": "error", "error": out["error"]}
-        return {"status": "done", "stage": "Done", "progress": 1.0, "result": out["result"]}
-
-
-@app.function(image=web_image)
-@modal.concurrent(max_inputs=50)
-@modal.asgi_app()
-def api():
-    from survey.jobs import create_app
-
-    return create_app(ModalJobs())

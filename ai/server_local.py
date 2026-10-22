@@ -1,9 +1,11 @@
-"""Run the AI API on this computer's GPU (for development or a live demo).
+"""Run the AI API on this computer (for development or a live demo).
 
     .venv\\Scripts\\python server_local.py
     -> http://localhost:8000
 
 Jobs run one at a time on a single worker thread and are kept in memory.
+With SURVEY_GPU=modal, videos are analysed by the worker deployed on Modal
+(modal_app.py) instead, so this computer needs no GPU and loads no models.
 Settings (database, chat model, admin password) come from ai/.env; see
 .env.example.
 """
@@ -32,8 +34,6 @@ _load_env(Path(__file__).with_name(".env"))
 import uvicorn  # noqa: E402
 
 from survey.jobs import create_app  # noqa: E402
-from survey.models import get_models  # noqa: E402
-from survey.pipeline import run  # noqa: E402
 
 
 class LocalJobs:
@@ -54,6 +54,8 @@ class LocalJobs:
         return job_id
 
     def _work(self, job_id: str, video: bytes, suffix: str, room: str):
+        from survey.pipeline import run
+
         with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
             f.write(video)
             path = f.name
@@ -79,5 +81,14 @@ if __name__ == "__main__":
     from survey import chat
 
     threading.Thread(target=chat.warm, daemon=True).start()
-    get_models()  # load before the first request instead of during it
-    uvicorn.run(create_app(LocalJobs()), host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
+    if os.environ.get("SURVEY_GPU", "").lower() == "modal":
+        from survey.modal_jobs import ModalJobs
+
+        backend = ModalJobs()
+        print("Videos are analysed on Modal.")
+    else:
+        from survey.models import get_models
+
+        get_models()  # load before the first request instead of during it
+        backend = LocalJobs()
+    uvicorn.run(create_app(backend), host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
