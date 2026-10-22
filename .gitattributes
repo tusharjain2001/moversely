@@ -1,0 +1,5 @@
+# Files run on the Linux server must keep Linux line endings.
+*.sh text eol=lf
+*.service text eol=lf
+deploy/** text eol=lf
+ai/requirements-server.txt text eol=lf
