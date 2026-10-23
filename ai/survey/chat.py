@@ -31,7 +31,7 @@ CHAT_AI_KEY = os.environ.get("CHAT_AI_KEY", "")
 CHAT_AI_EXTRA = json.loads(os.environ.get("CHAT_AI_EXTRA", '{"reasoning_effort": "none"}'))
 
 MOVE_TYPES = {"full": "Full household", "partial": "Partial household", "boxes": "A few boxes"}
-STEPS = ["from", "to", "move_type", "vehicle", "pets", "date", "name", "email", "phone"]
+STEPS = ["from", "to", "move_type", "date", "name", "email", "phone"]
 EDITABLE = {"from": "Moving from", "to": "Moving to", "move_type": "What you're moving", "date": "Moving date",
             "name": "Name", "email": "Email", "phone": "Phone"}
 
@@ -48,7 +48,6 @@ QUESTION_START = re.compile(r"^(what|how|when|where|why|which|who|do|does|did|ca
 def _question(step: str, a: dict) -> tuple[str, dict]:
     """The assistant's question for a step, and the input widget to show."""
     supported = [{"label": c["name"], "value": slug} for slug, c in C.countries().items()]
-    yes_no = [{"label": "Yes", "value": "yes"}, {"label": "No", "value": "no"}]
     if step == "from":
         return "Where are you moving from?", {"type": "chips", "options": supported}
     if step == "to":
@@ -57,10 +56,6 @@ def _question(step: str, a: dict) -> tuple[str, dict]:
     if step == "move_type":
         return "What are you moving?", {"type": "chips",
                                         "options": [{"label": v, "value": k} for k, v in MOVE_TYPES.items()]}
-    if step == "vehicle":
-        return "Will you also ship a car or motorbike?", {"type": "chips", "options": yes_no}
-    if step == "pets":
-        return "Are any pets moving with you?", {"type": "chips", "options": yes_no}
     if step == "date":
         return "When would you like to move?", {"type": "date", "min": date.today().isoformat()}
     if step == "name":
@@ -94,16 +89,6 @@ def _move(a: dict) -> dict:
 
 
 # ---------------------------------------------------------------- answers
-
-def _yes_no(text: str, yes_words: tuple[str, ...] = ()) -> str | None:
-    t = text.lower().strip(" .!")
-    if re.search(r"\b(no|nope|nah|none|not|don't|dont|without)\b", t):
-        return "no"
-    if re.search(r"\b(yes|yeah|yep|yup|sure|ok|okay|of course|definitely|we do|i do)\b", t) or \
-            any(w in t for w in yes_words):
-        return "yes"
-    return None
-
 
 MONTHS = {m: i for i, m in enumerate(["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov",
                                       "dec"], 1)}
@@ -172,10 +157,6 @@ def _parse(step: str, text: str, a: dict) -> tuple[str | None, str | None]:
         if re.search(r"\b(full|whole|entire|everything|all|house|home|apartment|flat|bhk|bedroom)\b", t):
             return "full", None
         return None, None
-    if step == "vehicle":
-        return _yes_no(text, ("car", "bike", "motorbike", "motorcycle", "scooter", "suv")), None
-    if step == "pets":
-        return _yes_no(text, ("dog", "cat", "puppy", "kitten", "bird", "pet")), None
     if step == "date":
         if re.search(r"\d", text) and not _date(text):
             return None, "That date doesn't look right, or it's in the past. Please pick it from the calendar."
@@ -338,14 +319,20 @@ def _next_step(a: dict) -> str:
     return next((s for s in STEPS if s not in a), "confirm")
 
 
+def _conversation(cid: str) -> dict | None:
+    conv = db.get_conversation(cid)
+    # A chat saved at a question we no longer ask (car, pets) moves on to the next one.
+    if conv and conv["state"]["step"] not in (*STEPS, "edit", "confirm"):
+        conv["state"]["step"] = _next_step(conv["state"]["answers"])
+    return conv
+
+
 def _label(step: str, value: str, a: dict) -> str:
     """What the visitor 'said' when they tapped a button."""
     if step in ("from", "to") and value in C.countries():
         return C.name(value)
     if step == "move_type":
         return MOVE_TYPES.get(value, value)
-    if step in ("vehicle", "pets"):
-        return value.capitalize()
     if step == "date":
         try:
             return datetime.strptime(value, "%Y-%m-%d").strftime("%d %B %Y").lstrip("0")
@@ -363,8 +350,7 @@ def _save_lead(cid: str, state: dict) -> None:
     state["lead_id"] = db.save_lead("chat", {
         "name": a.get("name"), "email": a.get("email"), "phone": a.get("phone"),
         "from_country": a.get("from"), "to_country": a.get("to"), "move_date": a.get("date"),
-        "move_type": a.get("move_type"),
-        "extras": {k: a[k] for k in ("vehicle", "pets") if k in a}, "conversation_id": cid,
+        "move_type": a.get("move_type"), "conversation_id": cid,
     }, state.get("lead_id"))
 
 
@@ -387,7 +373,7 @@ def start() -> dict:
 
 
 def resume(cid: str) -> dict | None:
-    conv = db.get_conversation(cid)
+    conv = _conversation(cid)
     if not conv:
         return None
     state = conv["state"]
@@ -397,7 +383,7 @@ def resume(cid: str) -> dict | None:
 
 
 def turn(cid: str, text: str = "", value: str = "") -> dict | None:
-    conv = db.get_conversation(cid)
+    conv = _conversation(cid)
     if not conv:
         return None
     state, step = conv["state"], conv["state"]["step"]

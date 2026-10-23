@@ -132,7 +132,7 @@ export default function Home() {
             <div className="fade-up">
               <p className="inline-flex h-7 items-center gap-2 rounded-full bg-white/14 px-2.5 text-xs font-bold sm:h-8 sm:px-3 sm:text-[13px]">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#5eead4]" aria-hidden />
-                AI moving survey, from Singapore
+                AI moving survey for international moves
               </p>
               <h1 className="mt-3.5 max-w-[63%] text-[34px] font-extrabold leading-[1.05] tracking-[-0.035em] sm:mt-5 sm:text-[56px] lg:max-w-[13ch] lg:text-[68px] lg:leading-[1.02]">
                 Measure your home <span className="text-[var(--primary-200)]">with your phone.</span>

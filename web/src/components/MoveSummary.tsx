@@ -30,7 +30,7 @@ export default function MoveSummary() {
   const isClient = useIsClient();
   if (!isClient) return <div className="min-h-dvh" />;
   const move = loadMove();
-  const from = move && countryBySlug(move.from);
+  const from = move && countryOrOther(move.from);
   const to = move && countryOrOther(move.to);
   return move && from && to ? <Summary move={move} from={from} to={to} /> : <MissingMove step={4} />;
 }
@@ -102,7 +102,7 @@ function Summary({ move, from, to }: { move: MoveDetails; from: Country; to: Cou
             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2.5 lg:grid-cols-[auto_1fr_auto] lg:gap-7">
               <div className="min-w-0">
                 <p className="text-[11px] font-extrabold tracking-[0.08em] text-[#cfe2f7] lg:text-xs">FROM</p>
-                <p className="mt-0.5 text-lg font-extrabold lg:mt-1 lg:text-[26px]">{from.name}</p>
+                <p className="mt-0.5 text-lg font-extrabold lg:mt-1 lg:text-[26px]">{move.fromPlace ?? from.name}</p>
               </div>
               <div className="flex items-center gap-2">
                 <span className="hidden flex-1 border-t-2 border-dashed border-white/45 lg:block" />

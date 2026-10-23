@@ -15,6 +15,7 @@ const CITY_CODES: Record<string, string> = {
   "new york": "NYC", "los angeles": "LAX", "san francisco": "SFO", seattle: "SEA", chicago: "CHI",
   boston: "BOS", houston: "HOU", austin: "AUS", dallas: "DFW", miami: "MIA",
   tokyo: "TYO", "hong kong": "HKG", "kuala lumpur": "KUL", bangkok: "BKK", jakarta: "JKT", manila: "MNL",
+  singapore: "SIN", shanghai: "SHA", beijing: "BJS", seoul: "SEL", amsterdam: "AMS", zurich: "ZRH", dublin: "DUB",
 };
 
 const COUNTRY_CODES: Record<string, string> = {
@@ -22,11 +23,13 @@ const COUNTRY_CODES: Record<string, string> = {
   singapore: "SG", uae: "AE", uk: "GB", usa: "US",
 };
 
-/** The destination as a short code: city airport code, else country code. */
-export function destinationCode(move: MoveDetails): string {
-  const city = move.toPlace?.split(",")[0].trim().toLowerCase();
-  if (city && CITY_CODES[city]) return CITY_CODES[city];
-  return COUNTRY_CODES[move.to] ?? move.to.replace(/[^a-z]/gi, "").slice(0, 3).toUpperCase();
+/** A place as a short code: city airport code, else country code. */
+function placeCode(place: string | undefined, country: string): string {
+  // Older saved moves have no picked place for the origin; the country's own name may be a city ("Singapore").
+  const city = (place ?? country).split(",")[0].trim().toLowerCase();
+  if (CITY_CODES[city]) return CITY_CODES[city];
+  return COUNTRY_CODES[country] ?? country.replace(/[^a-z]/gi, "").slice(0, 3).toUpperCase();
 }
 
-export const ORIGIN_CODE = "SIN";
+export const originCode = (move: MoveDetails) => placeCode(move.fromPlace, move.from);
+export const destinationCode = (move: MoveDetails) => placeCode(move.toPlace, move.to);

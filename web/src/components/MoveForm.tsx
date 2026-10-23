@@ -6,7 +6,6 @@ import {
   ArrowRight,
   EnvelopeSimple,
   HouseLine,
-  LockSimple,
   MagnifyingGlass,
   Package,
   Phone,
@@ -17,11 +16,11 @@ import { useRouter } from "next/navigation";
 import { type Dispatch, type ReactNode, type SetStateAction, useEffect, useRef, useState } from "react";
 import { COUNTRIES, countryBySlug } from "@/lib/countries";
 import { saveLead } from "@/lib/crm";
-import { MOVE_TYPES, type MoveDetails, type MoveType, ORIGIN, loadMove, saveMove, useIsClient } from "@/lib/move";
+import { MOVE_TYPES, type MoveDetails, type MoveType, loadMove, saveMove, useIsClient } from "@/lib/move";
 import { type Autocomplete, type Google, describePlace, loadPlaces, placesEnabled } from "@/lib/places";
-import { ORIGIN_CODE, destinationCode } from "@/lib/route";
+import { destinationCode, originCode } from "@/lib/route";
 
-const EMPTY: MoveDetails = { name: "", email: "", phone: "", from: ORIGIN, to: "", date: "", moveType: "full" };
+const EMPTY: MoveDetails = { name: "", email: "", phone: "", from: "", to: "", date: "", moveType: "full" };
 
 // Fields: 52 px, labels above.
 const fieldClass =
@@ -41,8 +40,9 @@ export default function MoveForm() {
 }
 
 function validate(m: MoveDetails): string | null {
+  if (!m.from) return "Choose where you are moving from, using the suggestions.";
   if (!m.to) return "Choose where you are moving to from the suggestions.";
-  if (m.to === m.from) return "Choose a destination outside Singapore.";
+  if (m.to === m.from) return "Choose a destination in a different country.";
   if (!m.date) return "Choose your moving date.";
   if (!m.name.trim()) return "Enter your name.";
   if (!/^\S+@\S+\.\S+$/.test(m.email)) return "Enter a valid email address.";
@@ -57,7 +57,7 @@ function validate(m: MoveDetails): string | null {
  */
 function Form({ saved }: { saved: boolean }) {
   const router = useRouter();
-  const [move, setMove] = useState<MoveDetails>(() => ({ ...EMPTY, ...(saved ? loadMove() : null), from: ORIGIN }));
+  const [move, setMove] = useState<MoveDetails>(() => ({ ...EMPTY, ...(saved ? loadMove() : null) }));
   const [error, setError] = useState<string | null>(null);
   const set = <K extends keyof MoveDetails>(key: K, value: MoveDetails[K]) => setMove((m) => ({ ...m, [key]: value }));
   // Only in the browser: the server's "today" can differ from the visitor's.
@@ -97,17 +97,20 @@ function Form({ saved }: { saved: boolean }) {
         </p>
       )}
 
-      {/* Route bar: From (fixed) and To. The date joins it on desktops. */}
+      {/* Route bar: From and To, each a place search. The date joins it on desktops. */}
       <div className="relative col-span-2 grid rounded-2xl border border-[var(--line-strong)] lg:col-start-1 lg:col-end-18 lg:row-start-3 lg:mt-5 lg:grid-cols-[7fr_10fr] lg:rounded-r-none">
-        <div className="min-h-16 rounded-t-2xl border-b border-[var(--line-strong)] bg-[#f8fafd] px-3.5 py-2.5 lg:rounded-l-2xl lg:rounded-tr-none lg:border-b-0 lg:border-r lg:px-5 lg:py-3.5">
-          <p className="flex items-center gap-1.5 text-xs font-bold text-[var(--muted)]">
-            From <LockSimple size={13} aria-label="Fixed" />
-          </p>
-          <p className="mt-0.5 flex items-baseline gap-2 lg:mt-1 lg:gap-2.5">
-            <span className="text-[19px] font-extrabold tracking-[-0.02em] lg:text-[22px]">Singapore</span>
-            <span className="text-xs font-extrabold tracking-[0.06em] text-[var(--muted)] lg:text-[13px]">{ORIGIN_CODE}</span>
-          </p>
-        </div>
+        <label className="group block min-h-16 cursor-text rounded-t-2xl border-b border-[var(--line-strong)] px-3.5 py-2.5 transition focus-within:shadow-[inset_0_0_0_2px_var(--primary)] lg:rounded-l-2xl lg:rounded-tr-none lg:border-b-0 lg:border-r lg:py-3.5 lg:pl-5 lg:pr-8">
+          <span className="text-xs font-bold text-[var(--muted)] group-focus-within:text-[var(--primary)]">From</span>
+          <span className="mt-0.5 flex items-center gap-2 lg:mt-1 lg:gap-2.5">
+            {!move.from && <MagnifyingGlass size={18} className="flex-none text-[#8c9ab3] lg:hidden" aria-hidden />}
+            <PlaceSearch side="from" move={move} setMove={setMove} />
+            {move.from && (
+              <span className="flex-none text-xs font-extrabold tracking-[0.06em] text-[var(--muted)] lg:text-[13px]">
+                {originCode(move)}
+              </span>
+            )}
+          </span>
+        </label>
         <span
           aria-hidden
           className="absolute right-4 top-16 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-[var(--card)] text-[var(--primary)] shadow-[0_0_0_1px_var(--line-strong),0_4px_10px_-4px_rgb(13_27_62/0.2)] lg:left-[calc(7/17*100%)] lg:right-auto lg:top-1/2 lg:-translate-x-1/2"
@@ -118,7 +121,7 @@ function Form({ saved }: { saved: boolean }) {
           <span className="text-xs font-bold text-[var(--muted)] group-focus-within:text-[var(--primary)]">To</span>
           <span className="mt-0.5 flex items-center gap-2 lg:mt-1 lg:gap-2.5">
             {!move.to && <MagnifyingGlass size={18} className="flex-none text-[#8c9ab3] lg:hidden" aria-hidden />}
-            <Destination move={move} setMove={setMove} />
+            <PlaceSearch side="to" move={move} setMove={setMove} />
             {move.to && (
               <span className="flex-none text-xs font-extrabold tracking-[0.06em] text-[var(--muted)] lg:text-[13px]">
                 {destinationCode(move)}
@@ -207,13 +210,23 @@ function Field({ label, icon, className, children }: { label: string; icon: Reac
 }
 
 /**
- * Google search for the destination: a city, region or country. The picked
- * place's country decides which customs documents the summary shows. Without
- * Google (no key, or it failed to load) it is a plain list of our countries.
+ * Google search for where the move starts or ends: a city, region or country.
+ * The picked place's country decides which customs documents the summary
+ * shows. Without Google (no key, or it failed to load) it is a plain list of
+ * our countries.
  */
-function Destination({ move, setMove }: { move: MoveDetails; setMove: Dispatch<SetStateAction<MoveDetails>> }) {
+function PlaceSearch({
+  side,
+  move,
+  setMove,
+}: {
+  side: "from" | "to";
+  move: MoveDetails;
+  setMove: Dispatch<SetStateAction<MoveDetails>>;
+}) {
+  const placeKey = side === "from" ? "fromPlace" : "toPlace";
   const inputRef = useRef<HTMLInputElement>(null);
-  const [text, setText] = useState(() => move.toPlace ?? countryBySlug(move.to)?.name ?? move.to);
+  const [text, setText] = useState(() => move[placeKey] ?? countryBySlug(move[side])?.name ?? move[side]);
   const [failed, setFailed] = useState(!placesEnabled);
 
   useEffect(() => {
@@ -230,7 +243,7 @@ function Destination({ move, setMove }: { move: MoveDetails; setMove: Dispatch<S
         const picked = describePlace(box.getPlace());
         if (!picked) return;
         setText(picked.label);
-        setMove((m) => ({ ...m, to: picked.country, toPlace: picked.label }));
+        setMove((m) => ({ ...m, [side]: picked.country, [placeKey]: picked.label }));
       });
       ac = box;
     });
@@ -238,17 +251,17 @@ function Destination({ move, setMove }: { move: MoveDetails; setMove: Dispatch<S
       cancelled = true;
       if (google && ac) google.maps.event.clearInstanceListeners(ac);
     };
-  }, [failed, setMove]);
+  }, [failed, setMove, side, placeKey]);
 
   if (failed)
     return (
       <select
-        value={countryBySlug(move.to) ? move.to : ""}
-        onChange={(e) => setMove((m) => ({ ...m, to: e.target.value, toPlace: undefined }))}
+        value={countryBySlug(move[side]) ? move[side] : ""}
+        onChange={(e) => setMove((m) => ({ ...m, [side]: e.target.value, [placeKey]: undefined }))}
         className={`${routeInputClass} cursor-pointer`}
       >
         <option value="">Select</option>
-        {COUNTRIES.filter((c) => c.slug !== ORIGIN).map((c) => (
+        {COUNTRIES.map((c) => (
           <option key={c.slug} value={c.slug}>
             {c.name}
           </option>
@@ -264,7 +277,7 @@ function Destination({ move, setMove }: { move: MoveDetails; setMove: Dispatch<S
       onChange={(e) => {
         setText(e.target.value);
         // Typed text is not a place yet: the visitor picks one from Google's list.
-        setMove((m) => (m.to ? { ...m, to: "", toPlace: undefined } : m));
+        setMove((m) => (m[side] ? { ...m, [side]: "", [placeKey]: undefined } : m));
       }}
       // Enter picks a suggestion; it must not submit the form.
       onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}

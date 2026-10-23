@@ -15,8 +15,8 @@ import Link from "next/link";
 import { type ReactNode, useEffect, useState } from "react";
 import type { Country } from "@/lib/countries";
 import { type Booking, MOVE_TYPES, type MoveDetails, formatMoveDate } from "@/lib/move";
-import { destinationPartner, ORIGIN_PARTNER, PRICE_SGD, TRANSIT_DAYS, money } from "@/lib/quote";
-import { ORIGIN_CODE, destinationCode } from "@/lib/route";
+import { PRICE_SGD, TRANSIT_DAYS, destinationPartner, money, originPartner } from "@/lib/quote";
+import { destinationCode, originCode } from "@/lib/route";
 import { M3_TO_FT3, shippingGuide } from "@/lib/units";
 import Logo from "./Logo";
 
@@ -52,8 +52,8 @@ export function RouteLine({
     <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
       <div className="min-w-0">
         {big && <p className={`text-xs font-semibold ${onPrimary ? "text-[#cfe2f7]" : "text-[var(--muted)]"}`}>From</p>}
-        <p className={code}>{ORIGIN_CODE}</p>
-        <p className={name}>{from.name}</p>
+        <p className={code}>{originCode(move)}</p>
+        <p className={`${name} truncate`}>{move.fromPlace ?? from.name}</p>
       </div>
       <div className="flex flex-col items-center gap-1">
         <div className="flex w-full items-center gap-1.5">
@@ -121,7 +121,7 @@ function SummaryBody({
       </dl>
       <dl className="mx-6 mt-4 grid gap-2.5 border-t border-[var(--line)] pt-3.5 text-[13px]">
         {[
-          ["Origin partner", ORIGIN_PARTNER.name],
+          ["Origin partner", originPartner(from.slug)],
           ["Destination partner", destinationPartner(to.slug)],
           ["Contracting service provider", "Moversly"],
         ].map(([label, value]) => (
@@ -235,7 +235,7 @@ export function BookingSheet({
         >
           <span className="min-w-0">
             <span className="flex items-center gap-1.5 text-[13px] font-bold">
-              <span>{ORIGIN_CODE}</span>
+              <span>{originCode(move)}</span>
               <AirplaneTilt size={13} weight="fill" className="text-[var(--primary)]" aria-hidden />
               <span>{destinationCode(move)}</span>
               <span className="truncate font-semibold text-[var(--muted)]">
@@ -325,7 +325,7 @@ export function MovePass({ trip, booking, notch = "var(--paper)" }: { trip: Trip
           <div className="col-span-2">
             <dt className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--muted)]">Partners</dt>
             <dd className="mt-1 text-sm font-bold">
-              {ORIGIN_PARTNER.name} <span className="font-semibold text-[var(--muted)]">→</span> {destinationPartner(to.slug)}{" "}
+              {originPartner(from.slug)} <span className="font-semibold text-[var(--muted)]">→</span> {destinationPartner(to.slug)}{" "}
               <span className="font-semibold text-[var(--muted)]">· contracted by Moversly</span>
             </dd>
           </div>

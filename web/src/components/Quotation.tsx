@@ -19,10 +19,10 @@ import {
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { type Country, countryBySlug, countryOrOther } from "@/lib/countries";
+import { type Country, countryOrOther } from "@/lib/countries";
 import { type MoveDetails, formatMoveDate, loadMove, useIsClient } from "@/lib/move";
-import { DESTINATION_ROLE, ORIGIN_PARTNER, PRICE_SGD, TRANSIT_DAYS, destinationPartner, money } from "@/lib/quote";
-import { ORIGIN_CODE, destinationCode } from "@/lib/route";
+import { DESTINATION_ROLE, ORIGIN_ROLE, PRICE_SGD, TRANSIT_DAYS, destinationPartner, money, originPartner } from "@/lib/quote";
+import { destinationCode, originCode } from "@/lib/route";
 import { M3_TO_FT3 } from "@/lib/units";
 import { useSurveyTotals } from "@/lib/useSurveyTotals";
 import { BookingPanel, BookingSheet } from "./Booking";
@@ -46,7 +46,7 @@ export default function Quotation() {
   const isClient = useIsClient();
   if (!isClient) return <div className="min-h-dvh" />;
   const move = loadMove();
-  const from = move && countryBySlug(move.from);
+  const from = move && countryOrOther(move.from);
   const to = move && countryOrOther(move.to);
   return move && from && to ? <Quote move={move} from={from} to={to} /> : <MissingMove step={2} />;
 }
@@ -93,7 +93,7 @@ function Quote({ move, from, to }: { move: MoveDetails; from: Country; to: Count
             </h1>
             <p className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-2 text-[15px] font-semibold text-[var(--muted)]">
               <span className="hidden lg:inline">
-                {from.name} → {place}
+                {move.fromPlace ?? from.name} → {place}
               </span>
               <span className="inline-flex h-[26px] items-center rounded-[7px] bg-[var(--primary-50)] px-2.5 text-xs font-extrabold text-[var(--primary)]">
                 Illustrative instant estimate
@@ -123,9 +123,9 @@ function Quote({ move, from, to }: { move: MoveDetails; from: Country; to: Count
               <div className="min-w-0">
                 <p className="hidden text-xs font-bold text-[var(--muted)] lg:block">Pickup · {formatMoveDate(move, true)}</p>
                 <p className="text-[30px] font-extrabold leading-none tracking-[-0.03em] lg:mt-0.5 lg:text-[40px] lg:leading-[1.05]">
-                  {ORIGIN_CODE}
+                  {originCode(move)}
                 </p>
-                <p className="mt-1 text-xs font-semibold text-[var(--muted)] lg:mt-0 lg:text-sm">{from.name}</p>
+                <p className="mt-1 text-xs font-semibold text-[var(--muted)] lg:mt-0 lg:text-sm">{move.fromPlace ?? from.name}</p>
               </div>
               <div className="flex flex-col items-center gap-1 lg:gap-1.5">
                 <span className="hidden text-[13px] font-extrabold lg:block">Approx. {TRANSIT_DAYS}*</span>
@@ -192,8 +192,8 @@ function Quote({ move, from, to }: { move: MoveDetails; from: Country; to: Count
             <Partner
               icon={<AirplaneTakeoff size={22} weight="bold" />}
               label="ORIGIN PARTNER"
-              name={ORIGIN_PARTNER.name}
-              detail={`${from.name} · ${ORIGIN_PARTNER.role}`}
+              name={originPartner(from.slug)}
+              detail={`${from.name} · ${ORIGIN_ROLE}`}
             />
             <Partner
               icon={<AirplaneLanding size={22} weight="bold" />}

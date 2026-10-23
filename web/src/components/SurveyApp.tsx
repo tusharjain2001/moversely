@@ -25,7 +25,7 @@ import {
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { createElement, useState } from "react";
-import { countryBySlug, countryOrOther } from "@/lib/countries";
+import { countryOrOther } from "@/lib/countries";
 import { loadMove, useIsClient } from "@/lib/move";
 import type { Room, Units } from "@/lib/types";
 import { useSurvey } from "@/lib/useSurvey";
@@ -77,7 +77,7 @@ function Survey() {
 
   // The booking summary needs the move from step 1; the survey works without it.
   const move = loadMove();
-  const from = move && countryBySlug(move.from);
+  const from = move && countryOrOther(move.from);
   const to = move && countryOrOther(move.to);
   const trip = move && from && to ? { move, from, to, totalM3: total } : null;
 

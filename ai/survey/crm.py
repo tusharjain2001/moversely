@@ -32,9 +32,10 @@ class LeadIn(BaseModel):
     name: str = Field(max_length=120)
     email: str = Field(max_length=200)
     phone: str = Field(max_length=40)
-    from_: str = Field(alias="from", max_length=40)
-    to: str = Field(max_length=60)  # country slug, or a country name we have no customs summary for
-    toPlace: str | None = Field(None, max_length=120)  # the place picked in the search box, e.g. "Toronto, Canada"
+    from_: str = Field(alias="from", max_length=60)  # country slug, or a country name we have no customs summary for
+    fromPlace: str | None = Field(None, max_length=120)  # the place picked in the search box, e.g. "Singapore"
+    to: str = Field(max_length=60)
+    toPlace: str | None = Field(None, max_length=120)  # e.g. "Toronto, Canada"
     date: str = Field(max_length=10)
     moveType: str = Field(max_length=16)
 
@@ -76,9 +77,9 @@ def chat_get(cid: str):
 @router.post("/leads")
 def lead_create(body: LeadIn):
     lead_id = db.save_lead("form", {
-        "name": body.name, "email": body.email, "phone": body.phone, "from_country": body.from_,
+        "name": body.name, "email": body.email, "phone": body.phone, "from_country": body.from_[:40],
         "to_country": body.to[:40], "move_date": body.date, "move_type": body.moveType,
-        "extras": {"to_place": body.toPlace} if body.toPlace else None,
+        "extras": {k: v for k, v in (("from_place", body.fromPlace), ("to_place", body.toPlace)) if v} or None,
     }, body.lead_id)
     if lead_id != body.lead_id:  # a new lead, not the same visitor sending the form again
         notify.new_lead(db.get_lead(lead_id))

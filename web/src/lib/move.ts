@@ -8,7 +8,8 @@ export type MoveDetails = {
   name: string;
   email: string;
   phone: string;
-  from: string; // country slug
+  from: string; // country slug, or the country's name when we have no customs summary for it ("Japan")
+  fromPlace?: string; // what the visitor picked in the search box, e.g. "Singapore"
   to: string; // country slug, or the country's name when we have no customs summary for it ("Japan")
   toPlace?: string; // what the visitor picked in the search box, e.g. "Toronto, Canada"
   date: string; // yyyy-mm-dd
@@ -18,9 +19,6 @@ export type MoveDetails = {
 };
 
 export type Booking = { ref: string; insurancePremium: number; total: number; at: string };
-
-/** Every move on this site starts in Singapore, so the form doesn't ask. */
-export const ORIGIN = "singapore";
 
 export const MOVE_TYPES: { value: MoveType; label: string; short: string }[] = [
   { value: "full", label: "Full household", short: "Full home" },

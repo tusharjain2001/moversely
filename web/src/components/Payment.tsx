@@ -16,7 +16,7 @@ import {
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
-import { type Country, countryBySlug, countryOrOther } from "@/lib/countries";
+import { type Country, countryOrOther } from "@/lib/countries";
 import { type Booking, type MoveDetails, formatMoveDate, loadMove, saveMove, useIsClient } from "@/lib/move";
 import { INSURANCE_RATE, PRICE_SGD, money } from "@/lib/quote";
 import { useSurveyTotals } from "@/lib/useSurveyTotals";
@@ -29,7 +29,7 @@ export default function Payment() {
   const isClient = useIsClient();
   if (!isClient) return <div className="min-h-dvh" />;
   const move = loadMove();
-  const from = move && countryBySlug(move.from);
+  const from = move && countryOrOther(move.from);
   const to = move && countryOrOther(move.to);
   return move && from && to ? <Checkout move={move} from={from} to={to} /> : <MissingMove step={3} />;
 }
@@ -112,7 +112,7 @@ function Checkout({ move, from, to }: { move: MoveDetails; from: Country; to: Co
                 <span className="font-extrabold">{move.name}</span> · {move.email}
               </p>
               <p className="text-[var(--muted)]">
-                {from.name} → {move.toPlace ?? to.name} · <span className="tabular-nums">{volume}</span>
+                {move.fromPlace ?? from.name} → {move.toPlace ?? to.name} · <span className="tabular-nums">{volume}</span>
               </p>
               <p className="text-[var(--muted)]">Pickup requested: {formatMoveDate(move)}</p>
             </div>
@@ -348,7 +348,7 @@ function Confirmed({
     navigator
       .share({
         title: "My Moversly Move Pass",
-        text: `Moversly booking ${booking.ref}: ${trip.from.name} → ${trip.move.toPlace ?? trip.to.name}, pickup ${formatMoveDate(trip.move)}.`,
+        text: `Moversly booking ${booking.ref}: ${trip.move.fromPlace ?? trip.from.name} → ${trip.move.toPlace ?? trip.to.name}, pickup ${formatMoveDate(trip.move)}.`,
       })
       .catch(() => {});
   const tool =
