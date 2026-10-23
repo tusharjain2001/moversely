@@ -1,6 +1,19 @@
 "use client";
 
-import { ArrowClockwise, ArrowLeft, ChatCircleDots, Lock, SignOut } from "@phosphor-icons/react";
+import {
+  ArrowClockwise,
+  ArrowLeft,
+  ArrowRight,
+  ChatCircleDots,
+  CheckCircle,
+  CircleDashed,
+  Lock,
+  NotePencil,
+  SignOut,
+  Sparkle,
+  Tray,
+  WarningCircle,
+} from "@phosphor-icons/react";
 import Link from "next/link";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { countryBySlug } from "@/lib/countries";
@@ -35,6 +48,16 @@ const when = (iso: string) =>
   });
 const moveDate = (iso: string | null) =>
   iso ? new Date(`${iso}T00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "?";
+const initials = (name: string | null) =>
+  (name ?? "")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join("") || "?";
+
+const outlineButton =
+  "flex h-10 items-center gap-1.5 rounded-[10px] bg-[var(--card)] px-3.5 text-sm font-bold shadow-[inset_0_0_0_1px_var(--line-strong)] transition hover:text-[var(--primary)] hover:shadow-[inset_0_0_0_1.5px_var(--primary)]";
 
 /** The team's view of every enquiry: homepage form and "Talk to AI" chats. */
 export default function AdminApp() {
@@ -85,90 +108,162 @@ function Admin() {
     return <Login password={password} setPassword={setPassword} onSubmit={() => load(password)} error={error} loading={loading} />;
 
   const finished = leads.filter((l) => l.survey_volume_ft3 != null).length;
+  const signOut = () => {
+    storePassword("");
+    setPassword("");
+    setLeads(null);
+    setOpen(null);
+  };
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pb-16 pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-6">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <Link href="/" className="flex items-center gap-2">
-          <Logo />
-          <span className="rounded-full bg-[var(--chip)] px-2 py-0.5 text-xs font-medium text-[var(--muted)]">Team</span>
-        </Link>
-        <div className="flex gap-2">
-          <button
-            onClick={() => load(password)}
-            className="flex items-center gap-1.5 rounded-full border border-[var(--line)] px-3 py-1.5 text-sm transition hover:border-[var(--primary)]"
-          >
-            <ArrowClockwise size={16} className={loading ? "motion-safe:animate-spin" : ""} /> Refresh
-          </button>
-          <button
-            onClick={() => {
-              storePassword("");
-              setPassword("");
-              setLeads(null);
-              setOpen(null);
-            }}
-            className="flex items-center gap-1.5 rounded-full border border-[var(--line)] px-3 py-1.5 text-sm transition hover:border-[var(--primary)]"
-          >
-            <SignOut size={16} /> Sign out
-          </button>
+    <div className="min-h-dvh bg-[var(--paper)]">
+      <header className="border-b border-[var(--line)] bg-[var(--card)] pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-16 max-w-[1344px] items-center justify-between gap-3 pl-4 pr-3 sm:h-[68px] sm:px-8">
+          <Link href="/" className="flex items-center gap-2.5">
+            <Logo className="text-[17px] sm:text-[19px]" />
+            <span className="flex h-6 items-center rounded-md bg-[var(--chip)] px-2 text-xs font-extrabold text-[var(--muted)]">Team</span>
+          </Link>
+          <div className="flex gap-1.5 sm:gap-2">
+            <button onClick={() => load(password)} aria-label="Refresh" className={`${outlineButton} max-sm:w-11 max-sm:justify-center max-sm:px-0`}>
+              <ArrowClockwise size={16} weight="bold" className={loading ? "motion-safe:animate-spin" : ""} />
+              <span className="max-sm:hidden">Refresh</span>
+            </button>
+            <button onClick={signOut} aria-label="Sign out" className={`${outlineButton} max-sm:w-11 max-sm:justify-center max-sm:px-0`}>
+              <SignOut size={16} weight="bold" />
+              <span className="max-sm:hidden">Sign out</span>
+            </button>
+          </div>
         </div>
       </header>
 
-      <section className="mt-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Leads</h1>
-        <p className="mt-1 text-sm text-[var(--muted)]">
-          {leads.length} enquir{leads.length === 1 ? "y" : "ies"} · {finished} finished the room survey
-        </p>
-      </section>
+      <div className="mx-auto max-w-[1344px] px-3 pb-12 pt-[18px] sm:px-8 sm:pt-7">
+        <section className="px-1 sm:px-0">
+          <h1 className="text-2xl font-extrabold tracking-[-0.02em] sm:text-[28px]">Leads</h1>
+          <p className="mt-0.5 text-[13px] font-semibold text-[var(--muted)] sm:mt-1 sm:text-sm">
+            {leads.length} enquir{leads.length === 1 ? "y" : "ies"} · {finished} finished the room survey
+          </p>
+        </section>
 
-      {error && <p className="mt-4 rounded-xl bg-[var(--bad-bg)] px-3 py-2 text-sm text-[var(--bad)]">{error}</p>}
+        {error && (
+          <p role="alert" className="mt-4 flex gap-2.5 rounded-[14px] bg-[var(--bad-bg)] px-3.5 py-3 text-sm font-semibold text-[var(--bad)]">
+            <WarningCircle size={18} weight="fill" className="shrink-0" />
+            {error}
+          </p>
+        )}
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <ul className={`space-y-2 ${open ? "hidden lg:block" : ""}`}>
-          {leads.length === 0 && (
-            <li className="rounded-3xl border border-dashed border-[var(--line)] p-8 text-center text-sm text-[var(--muted)]">
-              No enquiries yet. They appear here when someone fills in the form or finishes a chat.
-            </li>
-          )}
-          {leads.map((l) => (
-            <li key={l.id}>
-              <button
-                onClick={() => openLead(l.id)}
-                className={`lift w-full rounded-2xl border bg-[var(--card)] p-4 text-left ${
-                  open?.id === l.id ? "border-[var(--primary)]" : "border-[var(--line)]"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold">{l.name || "No name yet"}</p>
-                    <p className="text-sm text-[var(--muted)]">
-                      {country(l.from_country)} → {country(l.to_country)} · {moveDate(l.move_date)}
-                    </p>
+        <div className="mt-3.5 grid items-start gap-5 sm:mt-5 lg:grid-cols-[minmax(0,1fr)_460px]">
+          <div className={open ? "hidden lg:block" : ""}>
+            {leads.length === 0 ? (
+              <div className="rounded-[18px] border-2 border-dashed border-[#c9d5e8] p-9 text-center">
+                <Tray size={34} weight="duotone" className="mx-auto text-[var(--primary)]" />
+                <p className="mx-auto mt-2.5 max-w-[340px] text-sm leading-relaxed text-[var(--muted)]">
+                  No enquiries yet. They appear here when someone fills in the form or finishes a chat.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Desktop: a table */}
+                <div className="hidden overflow-hidden rounded-[18px] bg-[var(--card)] shadow-[0_0_0_1px_var(--line)] lg:block">
+                  <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1.5fr)_minmax(0,0.95fr)_72px_minmax(0,1.35fr)_128px] gap-3 border-b border-[var(--line)] bg-[#f8fafd] px-5 py-3 text-[11px] font-extrabold tracking-[0.08em] text-[var(--muted)]">
+                    <span>NAME</span>
+                    <span>ROUTE</span>
+                    <span>MOVE DATE</span>
+                    <span>SOURCE</span>
+                    <span>ROOM SURVEY</span>
+                    <span className="text-right">RECEIVED</span>
                   </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
-                      l.source === "chat" ? "bg-[var(--primary)]/12 text-[var(--primary)]" : "bg-[var(--chip)] text-[var(--muted)]"
-                    }`}
-                  >
-                    {l.source === "chat" ? "Chat" : "Form"}
-                  </span>
+                  {leads.map((l) => {
+                    const active = open?.id === l.id;
+                    return (
+                      <button
+                        key={l.id}
+                        onClick={() => openLead(l.id)}
+                        className={`grid min-h-[60px] w-full grid-cols-[minmax(0,1.1fr)_minmax(0,1.5fr)_minmax(0,0.95fr)_72px_minmax(0,1.35fr)_128px] items-center gap-3 border-b border-[var(--chip)] px-5 text-left transition last:border-b-0 ${
+                          active ? "bg-[var(--primary-50)] shadow-[inset_3px_0_0_var(--primary)]" : "bg-[var(--card)] hover:bg-[var(--paper)]"
+                        }`}
+                      >
+                        <span className={`truncate text-sm font-extrabold ${l.name ? "" : "text-[#8c9ab3]"}`}>{l.name || "No name yet"}</span>
+                        <span className="flex min-w-0 items-center gap-1.5 text-sm font-semibold">
+                          <span className="shrink-0">{country(l.from_country)}</span>
+                          <ArrowRight size={12} weight="bold" className="shrink-0 text-[var(--muted)]" />
+                          <span className="truncate">{country(l.to_country)}</span>
+                        </span>
+                        <span className="text-sm font-semibold text-[var(--muted)]">{moveDate(l.move_date)}</span>
+                        <span>
+                          <SourceTag source={l.source} />
+                        </span>
+                        <SurveyStatus lead={l} />
+                        <span className="text-right text-[13px] font-semibold text-[var(--muted)]">{when(l.created_at)}</span>
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--muted)]">
-                  <span>
-                    {l.survey_volume_ft3 != null
-                      ? `Survey: ${Math.round(l.survey_volume_ft3)} ft³ · ${l.survey_items} items`
-                      : "Survey not finished"}
-                  </span>
-                  <span>{when(l.created_at)}</span>
-                </div>
-              </button>
-            </li>
-          ))}
-        </ul>
 
-        {open && <LeadDetail lead={open} onBack={() => setOpen(null)} />}
+                {/* Phones and tablets: cards */}
+                <ul className="grid gap-2 lg:hidden">
+                  {leads.map((l) => (
+                    <li key={l.id}>
+                      <button
+                        onClick={() => openLead(l.id)}
+                        className={`w-full rounded-2xl bg-[var(--card)] p-3.5 text-left transition ${
+                          open?.id === l.id ? "shadow-[0_0_0_1.5px_var(--primary)]" : "shadow-[0_0_0_1px_var(--line)] hover:shadow-[0_0_0_1.5px_var(--primary)]"
+                        }`}
+                      >
+                        <span className="flex justify-between gap-2.5">
+                          <span className="min-w-0">
+                            <span className={`block truncate text-[15px] font-extrabold ${l.name ? "" : "text-[#8c9ab3]"}`}>
+                              {l.name || "No name yet"}
+                            </span>
+                            <span className="mt-0.5 block text-[13px] text-[var(--muted)]">
+                              {country(l.from_country)} → {country(l.to_country)} · {moveDate(l.move_date)}
+                            </span>
+                          </span>
+                          <SourceTag source={l.source} />
+                        </span>
+                        <span className="mt-2 flex justify-between gap-2 text-xs font-semibold text-[var(--muted)]">
+                          <span className={l.survey_volume_ft3 != null ? "text-[var(--ok)]" : ""}>
+                            {l.survey_volume_ft3 != null
+                              ? `Survey: ${Math.round(l.survey_volume_ft3).toLocaleString()} ft³ · ${l.survey_items} items`
+                              : "Survey not finished"}
+                          </span>
+                          <span>{when(l.created_at)}</span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+
+          {open && <LeadDetail lead={open} onBack={() => setOpen(null)} />}
+        </div>
       </div>
     </div>
+  );
+}
+
+function SourceTag({ source }: { source: Lead["source"] }) {
+  const chat = source === "chat";
+  return (
+    <span
+      className={`inline-flex h-6 shrink-0 items-center gap-1 rounded-md px-2 text-xs font-extrabold ${
+        chat ? "bg-[var(--primary-50)] text-[var(--primary)]" : "bg-[var(--chip)] text-[var(--muted)]"
+      }`}
+    >
+      {chat ? <Sparkle size={12} weight="bold" /> : <NotePencil size={12} weight="bold" />}
+      {chat ? "Chat" : "Form"}
+    </span>
+  );
+}
+
+function SurveyStatus({ lead }: { lead: Lead }) {
+  const done = lead.survey_volume_ft3 != null;
+  return (
+    <span className={`flex items-center gap-1.5 whitespace-nowrap text-[13px] font-bold ${done ? "text-[var(--ok)]" : "text-[var(--muted)]"}`}>
+      {done ? <CheckCircle size={14} weight="bold" /> : <CircleDashed size={14} weight="bold" />}
+      {done ? `${Math.round(lead.survey_volume_ft3 ?? 0).toLocaleString()} ft³ · ${lead.survey_items} items` : "Not finished"}
+    </span>
   );
 }
 
@@ -183,28 +278,41 @@ function Login(props: {
     e.preventDefault();
     if (props.password) props.onSubmit();
   };
+  const wrong = Boolean(props.error);
   return (
-    <div className="flex min-h-dvh items-center justify-center px-4">
-      <form onSubmit={submit} className="w-full max-w-sm rounded-3xl border border-[var(--line)] bg-[var(--card)] p-6">
-        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--primary)]/12 text-[var(--primary)]">
-          <Lock size={22} weight="duotone" />
+    <div className="flex min-h-dvh items-center justify-center bg-[var(--paper)] px-4">
+      <form
+        onSubmit={submit}
+        className="w-full max-w-[380px] rounded-[22px] bg-[var(--card)] p-7 shadow-[0_0_0_1px_var(--line),0_24px_48px_-28px_rgb(10_70_150/0.4)]"
+      >
+        <span className="grid h-12 w-12 place-items-center rounded-[14px] bg-[var(--primary-50)] text-[var(--primary)]">
+          <Lock size={24} weight="duotone" />
         </span>
-        <h1 className="mt-4 text-xl font-semibold tracking-tight">Team access</h1>
+        <h1 className="mt-[18px] text-[22px] font-extrabold tracking-[-0.01em]">Team access</h1>
         <p className="mt-1 text-sm text-[var(--muted)]">See enquiries from the form and the AI chat.</p>
-        <label className="mt-5 block text-sm font-medium">
+        <label className={`mt-5 block text-[13px] font-bold ${wrong ? "text-[var(--bad)]" : ""}`}>
           Password
           <input
             type="password"
             autoComplete="current-password"
             value={props.password}
             onChange={(e) => props.setPassword(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-[var(--line)] bg-[var(--paper)] px-3 py-2.5 outline-none focus:border-[var(--primary)]"
+            className={`mt-1.5 h-[52px] w-full rounded-xl bg-[var(--card)] px-3.5 text-base font-semibold text-[var(--ink)] outline-none transition ${
+              wrong
+                ? "shadow-[inset_0_0_0_2px_var(--bad)]"
+                : "shadow-[inset_0_0_0_1px_var(--line-strong)] focus:shadow-[inset_0_0_0_2px_var(--primary),0_0_0_4px_var(--primary-100)]"
+            }`}
           />
         </label>
-        {props.error && <p className="mt-3 text-sm text-[var(--bad)]">{props.error}</p>}
+        {props.error && (
+          <p role="alert" className="mt-2 flex items-center gap-1.5 text-[13px] font-semibold text-[var(--bad)]">
+            <WarningCircle size={14} weight="bold" className="shrink-0" />
+            {props.error}
+          </p>
+        )}
         <button
           disabled={!props.password || props.loading}
-          className="btn-primary mt-5 w-full rounded-full bg-[var(--primary)] py-3 font-semibold text-[var(--on-primary)] disabled:opacity-50"
+          className="btn-primary mt-[18px] h-[52px] w-full rounded-[14px] text-[15px] font-extrabold disabled:opacity-45"
         >
           {props.loading ? "Checking…" : "Open leads"}
         </button>
@@ -230,37 +338,46 @@ function LeadDetail({ lead, onBack }: { lead: Lead; onBack: () => void }) {
     ["Received", when(lead.created_at)],
   ];
   return (
-    <section className="rounded-3xl border border-[var(--line)] bg-[var(--card)] lg:sticky lg:top-6 lg:self-start">
-      <div className="flex items-center gap-3 border-b border-[var(--line)] p-5">
-        <button onClick={onBack} aria-label="Back to the list" className="-ml-2 rounded-full p-2 hover:bg-[var(--chip)] lg:hidden">
-          <ArrowLeft size={20} />
+    <section className="rounded-[18px] bg-[var(--card)] shadow-[0_0_0_1px_var(--line),0_18px_40px_-28px_rgb(10_70_150/0.35)] lg:sticky lg:top-6">
+      <div className="flex items-center gap-3.5 border-b border-[var(--line)] px-[22px] py-5">
+        <button
+          onClick={onBack}
+          aria-label="Back to the list"
+          className="-ml-2 grid h-11 w-11 shrink-0 place-items-center rounded-full transition hover:bg-[var(--chip)] lg:hidden"
+        >
+          <ArrowLeft size={20} weight="bold" />
         </button>
+        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[var(--primary-50)] text-[15px] font-extrabold text-[var(--primary)]">
+          {initials(lead.name)}
+        </span>
         <div className="min-w-0">
-          <h2 className="truncate text-lg font-semibold">{lead.name || "No name yet"}</h2>
-          <p className="text-xs text-[var(--muted)]">From the {lead.source === "chat" ? "AI chat" : "homepage form"}</p>
+          <h2 className="text-[19px] font-extrabold">
+            <span className="block truncate">{lead.name || "No name yet"}</span>
+          </h2>
+          <p className="mt-0.5 text-[13px] font-semibold text-[var(--muted)]">From the {lead.source === "chat" ? "AI chat" : "homepage form"}</p>
         </div>
       </div>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 p-5 text-sm">
+      <dl className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-2.5 px-[22px] py-[18px] text-sm">
         {rows.map(([k, v]) => (
           <div key={k} className="contents">
             <dt className="text-[var(--muted)]">{k}</dt>
-            <dd className="min-w-0 break-words font-medium">{v}</dd>
+            <dd className="min-w-0 break-words font-bold">{v}</dd>
           </div>
         ))}
       </dl>
       {lead.messages && lead.messages.length > 0 && (
-        <div className="border-t border-[var(--line)] p-5">
-          <h3 className="flex items-center gap-2 text-sm font-semibold">
-            <ChatCircleDots size={18} /> Chat
+        <div className="border-t border-[var(--line)] px-[22px] py-[18px]">
+          <h3 className="flex items-center gap-2 text-sm font-extrabold">
+            <ChatCircleDots size={18} weight="bold" /> Chat
           </h3>
-          <div className="mt-3 max-h-[28rem] space-y-2 overflow-y-auto pr-1">
+          <div className="mt-3 grid max-h-[28rem] gap-2 overflow-y-auto pr-1">
             {lead.messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === "user" ? "justify-end" : ""}`}>
+              <div key={i} className={m.role === "user" ? "text-right" : ""}>
                 <p
-                  className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm ${
+                  className={`inline-block max-w-[85%] whitespace-pre-wrap px-3 py-[9px] text-left text-[13px] leading-normal ${
                     m.role === "user"
-                      ? "rounded-br-md bg-[var(--primary)] text-[var(--on-primary)]"
-                      : "rounded-bl-md bg-[var(--chip)]"
+                      ? "rounded-[14px] rounded-br-[4px] bg-[var(--primary)] text-[var(--on-primary)]"
+                      : "rounded-[14px] rounded-bl-[4px] bg-[var(--chip)]"
                   }`}
                 >
                   {m.text}

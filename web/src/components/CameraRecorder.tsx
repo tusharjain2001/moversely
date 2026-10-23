@@ -1,5 +1,6 @@
 "use client";
 
+import { CameraSlash, Lightbulb } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 
 const MAX_SECONDS = 90;
@@ -101,12 +102,13 @@ export default function CameraRecorder({ roomName, onDone, onCancel, onUnsupport
 
   const mm = String(Math.floor(seconds / 60)).padStart(1, "0");
   const ss = String(seconds % 60).padStart(2, "0");
+  const elapsed = Math.min(1, seconds / MAX_SECONDS);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black text-white">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#0b0f17] text-white">
       <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 h-full w-full object-cover" />
 
-      <div className="relative flex items-center justify-between px-4 pt-[max(1rem,env(safe-area-inset-top))]">
+      <div className="relative flex items-center justify-between gap-2 px-3 pt-[max(1rem,env(safe-area-inset-top))]">
         <button
           onClick={() => {
             if (recording) {
@@ -115,30 +117,56 @@ export default function CameraRecorder({ roomName, onDone, onCancel, onUnsupport
             }
             onCancel();
           }}
-          className="rounded-full bg-black/50 px-4 py-2 text-sm backdrop-blur"
+          className="h-11 rounded-full bg-black/50 px-4 text-sm font-bold backdrop-blur transition hover:bg-black/65"
         >
           Cancel
         </button>
-        <div className="rounded-full bg-black/50 px-4 py-2 text-sm font-medium backdrop-blur">{roomName}</div>
+        <div className="flex h-9 min-w-0 items-center truncate rounded-full bg-black/50 px-3.5 text-sm font-bold backdrop-blur">
+          {roomName}
+        </div>
         <div
-          className={`rounded-full px-3 py-2 font-mono text-sm tabular-nums backdrop-blur ${recording ? "bg-red-600" : "bg-black/50"}`}
+          className={`flex h-11 items-center gap-2 rounded-full px-3.5 text-[15px] font-extrabold backdrop-blur ${
+            recording ? "bg-[#e5484d]" : "bg-black/50"
+          }`}
         >
+          {recording && <span className="h-2 w-2 rounded-full bg-white" aria-hidden />}
           {mm}:{ss}
         </div>
       </div>
 
+      {recording && (
+        <div className="relative mx-4 mt-3" aria-hidden>
+          <div className="h-1 overflow-hidden rounded-sm bg-white/20">
+            <span className="block h-full bg-white transition-[width] duration-1000 ease-linear" style={{ width: `${elapsed * 100}%` }} />
+          </div>
+          <div className="mt-1 flex justify-between text-[11px] font-bold text-white/70">
+            <span>20–60 s ideal</span>
+            <span>1:30 max</span>
+          </div>
+        </div>
+      )}
+
       {/* Corner guides */}
-      <div className="pointer-events-none relative mx-6 mt-6 flex-1">
-        {["left-0 top-0 border-l-2 border-t-2", "right-0 top-0 border-r-2 border-t-2", "bottom-0 left-0 border-b-2 border-l-2", "bottom-0 right-0 border-b-2 border-r-2"].map((c) => (
-          <span key={c} className={`absolute h-8 w-8 border-[var(--tape)] ${c}`} />
+      <div className="pointer-events-none relative mx-7 my-5 flex-1">
+        {[
+          "left-0 top-0 rounded-tl-[10px] border-l-[3px] border-t-[3px]",
+          "right-0 top-0 rounded-tr-[10px] border-r-[3px] border-t-[3px]",
+          "bottom-0 left-0 rounded-bl-[10px] border-b-[3px] border-l-[3px]",
+          "bottom-0 right-0 rounded-br-[10px] border-b-[3px] border-r-[3px]",
+        ].map((c) => (
+          <span key={c} className={`absolute h-9 w-9 border-[#5eead4] ${c}`} />
         ))}
       </div>
 
-      <div className="relative px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 text-center">
+      <div className="relative flex flex-col items-center px-6 pb-[max(2rem,env(safe-area-inset-bottom))] text-center">
         {error ? (
-          <p className="mx-auto mb-6 max-w-xs rounded-xl bg-black/70 p-3 text-sm">{error}</p>
+          <div className="mb-5 max-w-[300px] rounded-[18px] bg-[#0b0f17]/85 p-5">
+            <CameraSlash size={30} weight="duotone" className="mx-auto text-[#ffb4ae]" aria-hidden />
+            <p className="mt-2.5 text-sm leading-normal">{error}</p>
+          </div>
         ) : (
-          <p className="mx-auto mb-6 max-w-xs rounded-xl bg-black/50 px-3 py-2 text-sm backdrop-blur">
+          <p className="mb-5 flex max-w-[300px] items-center gap-2 rounded-[14px] bg-black/55 px-4 py-2.5 text-sm font-bold backdrop-blur">
+            <Lightbulb size={16} weight="fill" className="flex-none text-[#5eead4]" aria-hidden />
             {recording
               ? seconds < MIN_SECONDS
                 ? "Keep going…"
@@ -150,13 +178,24 @@ export default function CameraRecorder({ roomName, onDone, onCancel, onUnsupport
           aria-label={recording ? "Stop recording" : "Start recording"}
           disabled={!!error || (recording && seconds < MIN_SECONDS)}
           onClick={recording ? stop : start}
-          className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-4 border-white disabled:opacity-40"
+          className="relative grid h-[84px] w-[84px] place-items-center rounded-full disabled:opacity-40"
         >
           <span
-            className={`block bg-red-600 transition-all ${recording ? "h-8 w-8 rounded-md" : "h-16 w-16 rounded-full"}`}
+            aria-hidden
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: recording
+                ? `conic-gradient(#ffffff 0 ${elapsed * 360}deg, rgb(255 255 255 / 0.3) ${elapsed * 360}deg 360deg)`
+                : "#ffffff",
+            }}
+          />
+          <span aria-hidden className="absolute inset-[5px] rounded-full bg-[#1a2230]" />
+          <span
+            aria-hidden
+            className={`relative block bg-[#e5484d] transition-all ${recording ? "h-8 w-8 rounded-lg" : "h-[62px] w-[62px] rounded-full"}`}
           />
         </button>
-        <p className="mt-3 text-xs text-white/70">
+        <p className="mt-3 text-xs font-semibold text-white/75">
           {recording ? "Tap to finish · stops automatically at 1:30" : "20–60 seconds is ideal"}
         </p>
       </div>

@@ -28,6 +28,15 @@ export const MOVE_TYPES: { value: MoveType; label: string; short: string }[] = [
   { value: "boxes", label: "A few boxes", short: "Few boxes" },
 ];
 
+/** "12 December 2026", or "12 Dec 2026" when short. */
+export function formatMoveDate(move: MoveDetails, short = false): string {
+  return new Date(`${move.date}T00:00`).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: short ? "short" : "long",
+    year: "numeric",
+  });
+}
+
 export function loadMove(): MoveDetails | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);

@@ -1,17 +1,36 @@
 "use client";
 
-import { ArrowRight } from "@phosphor-icons/react";
+import {
+  AirplaneTilt,
+  Armchair,
+  ArrowRight,
+  EnvelopeSimple,
+  HouseLine,
+  LockSimple,
+  MagnifyingGlass,
+  Package,
+  Phone,
+  User,
+  WarningCircle,
+} from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from "react";
+import { type Dispatch, type ReactNode, type SetStateAction, useEffect, useRef, useState } from "react";
 import { COUNTRIES, countryBySlug } from "@/lib/countries";
 import { saveLead } from "@/lib/crm";
-import { MOVE_TYPES, type MoveDetails, ORIGIN, loadMove, saveMove, useIsClient } from "@/lib/move";
+import { MOVE_TYPES, type MoveDetails, type MoveType, ORIGIN, loadMove, saveMove, useIsClient } from "@/lib/move";
 import { type Autocomplete, type Google, describePlace, loadPlaces, placesEnabled } from "@/lib/places";
+import { ORIGIN_CODE, destinationCode } from "@/lib/route";
 
 const EMPTY: MoveDetails = { name: "", email: "", phone: "", from: ORIGIN, to: "", date: "", moveType: "full" };
 
-const inputClass =
-  "mt-1.5 w-full min-w-0 rounded-xl border border-[var(--line)] bg-[var(--paper)] px-3 py-2.5 text-base text-[var(--ink)] outline-none transition focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/25";
+// Fields: 52 px, labels above.
+const fieldClass =
+  "mt-1.5 h-[52px] w-full min-w-0 rounded-xl border border-[var(--line-strong)] bg-[var(--card)] px-3.5 text-base font-semibold text-[var(--ink)] outline-none transition placeholder:text-[#8c9ab3] hover:border-[var(--primary-300)] focus:border-[var(--primary)] focus:shadow-[0_0_0_4px_var(--primary-100)]";
+// The big "To" value inside the route bar.
+const routeInputClass =
+  "w-full min-w-0 bg-transparent text-[19px] font-extrabold tracking-[-0.02em] text-[var(--ink)] outline-none placeholder:font-bold placeholder:text-[#8c9ab3] lg:text-[22px]";
+
+const TYPE_ICONS: Record<MoveType, typeof HouseLine> = { full: HouseLine, partial: Armchair, boxes: Package };
 
 /** The move-details form: step 1 of the flow, shown in the landing page hero. */
 export default function MoveForm() {
@@ -31,6 +50,11 @@ function validate(m: MoveDetails): string | null {
   return null;
 }
 
+/**
+ * Laid out like a flight search. Phones: one column. Desktops: a 24-column grid,
+ * with the route bar (From, To, date) on one row and the contact details and
+ * the button on the next.
+ */
 function Form({ saved }: { saved: boolean }) {
   const router = useRouter();
   const [move, setMove] = useState<MoveDetails>(() => ({ ...EMPTY, ...(saved ? loadMove() : null), from: ORIGIN }));
@@ -56,73 +80,129 @@ function Form({ saved }: { saved: boolean }) {
           .catch(() => {});
         router.push("/survey");
       }}
-      className="rounded-3xl border border-[var(--line)] bg-[var(--card)] p-4 shadow-[0_1px_2px_rgb(13_27_62/0.05),0_28px_64px_-32px_rgb(10_70_150/0.38)] sm:p-7"
+      className="grid grid-cols-2 gap-x-2.5 gap-y-3 rounded-[22px] bg-[var(--card)] px-4 pb-4 pt-[18px] shadow-float lg:grid-cols-24 lg:gap-x-3 lg:gap-y-0 lg:rounded-3xl lg:p-7"
     >
-      <h2 className="text-lg font-semibold tracking-tight sm:text-xl">Start your move plan</h2>
-      <p className="mt-1 text-sm text-[var(--muted)]">Step 1 of 5. Takes under a minute.</p>
-
-      <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-3.5 sm:mt-5 sm:gap-x-4 sm:gap-y-4">
-        <div className="col-span-2 block min-w-0 text-sm font-medium sm:col-span-1">
-          Moving from
-          <div className={`${inputClass} cursor-default text-[var(--muted)]`}>Singapore</div>
-        </div>
-        <label className="col-span-2 block min-w-0 text-sm font-medium sm:col-span-1">
-          Moving to
-          <Destination move={move} setMove={setMove} />
-        </label>
-        <fieldset className="col-span-2">
-          <legend className="text-sm font-medium">What are you moving?</legend>
-          <div className="mt-1.5 grid grid-cols-3 gap-1 rounded-xl border border-[var(--line)] bg-[var(--paper)] p-1">
-            {MOVE_TYPES.map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                aria-pressed={move.moveType === t.value}
-                onClick={() => set("moveType", t.value)}
-                className={`whitespace-nowrap rounded-lg px-1 py-2 text-sm font-medium leading-tight transition sm:py-1.5 sm:text-xs ${
-                  move.moveType === t.value ? "bg-[var(--primary)] text-[var(--on-primary)]" : "text-[var(--muted)] hover:text-[var(--ink)]"
-                }`}
-              >
-                <span className="sm:hidden">{t.short}</span>
-                <span className="hidden sm:inline">{t.label}</span>
-              </button>
-            ))}
-          </div>
-        </fieldset>
-        <label className="block min-w-0 text-sm font-medium">
-          Moving date
-          <input type="date" min={today} value={move.date} onChange={(e) => set("date", e.target.value)} className={inputClass} />
-        </label>
-        <label className="block min-w-0 text-sm font-medium">
-          Phone
-          <input type="tel" value={move.phone} onChange={(e) => set("phone", e.target.value)} autoComplete="tel" className={inputClass} />
-        </label>
-        <label className="col-span-2 block text-sm font-medium sm:col-span-1">
-          Full name
-          <input value={move.name} onChange={(e) => set("name", e.target.value)} autoComplete="name" className={inputClass} />
-        </label>
-        <label className="col-span-2 block text-sm font-medium sm:col-span-1">
-          Email
-          <input
-            type="email"
-            value={move.email}
-            onChange={(e) => set("email", e.target.value)}
-            autoComplete="email"
-            className={inputClass}
-          />
-        </label>
+      <div className="col-span-2 lg:col-start-1 lg:col-end-11 lg:row-start-1 lg:self-center">
+        <h2 className="text-[19px] font-extrabold tracking-[-0.02em] lg:text-[22px]">Start your move plan</h2>
+        <p className="mt-0.5 text-[13px] text-[var(--muted)] lg:mt-1 lg:text-sm">Step 1 of 5. Takes under a minute.</p>
       </div>
 
       {error && (
-        <p role="alert" className="mt-4 rounded-xl bg-[var(--bad-bg)] px-3 py-2 text-sm text-[var(--bad)]">
+        <p
+          role="alert"
+          className="col-span-2 flex gap-2.5 rounded-xl bg-[var(--bad-bg)] px-3.5 py-3 text-sm font-semibold leading-[1.45] text-[var(--bad)] lg:col-span-full lg:row-start-2 lg:mt-4"
+        >
+          <WarningCircle size={18} weight="fill" className="mt-px flex-none" />
           {error}
         </p>
       )}
 
-      <button className="btn-primary group mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-6 py-3.5 font-semibold text-[var(--on-primary)]">
+      {/* Route bar: From (fixed) and To. The date joins it on desktops. */}
+      <div className="relative col-span-2 grid rounded-2xl border border-[var(--line-strong)] lg:col-start-1 lg:col-end-18 lg:row-start-3 lg:mt-5 lg:grid-cols-[7fr_10fr] lg:rounded-r-none">
+        <div className="min-h-16 rounded-t-2xl border-b border-[var(--line-strong)] bg-[#f8fafd] px-3.5 py-2.5 lg:rounded-l-2xl lg:rounded-tr-none lg:border-b-0 lg:border-r lg:px-5 lg:py-3.5">
+          <p className="flex items-center gap-1.5 text-xs font-bold text-[var(--muted)]">
+            From <LockSimple size={13} aria-label="Fixed" />
+          </p>
+          <p className="mt-0.5 flex items-baseline gap-2 lg:mt-1 lg:gap-2.5">
+            <span className="text-[19px] font-extrabold tracking-[-0.02em] lg:text-[22px]">Singapore</span>
+            <span className="text-xs font-extrabold tracking-[0.06em] text-[var(--muted)] lg:text-[13px]">{ORIGIN_CODE}</span>
+          </p>
+        </div>
+        <span
+          aria-hidden
+          className="absolute right-4 top-16 z-10 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-[var(--card)] text-[var(--primary)] shadow-[0_0_0_1px_var(--line-strong),0_4px_10px_-4px_rgb(13_27_62/0.2)] lg:left-[calc(7/17*100%)] lg:right-auto lg:top-1/2 lg:-translate-x-1/2"
+        >
+          <AirplaneTilt size={18} weight="fill" className="rotate-[135deg] lg:rotate-45" />
+        </span>
+        <label className="group block min-h-16 cursor-text rounded-b-2xl px-3.5 py-2.5 transition focus-within:shadow-[inset_0_0_0_2px_var(--primary)] lg:rounded-none lg:py-3.5 lg:pl-8 lg:pr-5">
+          <span className="text-xs font-bold text-[var(--muted)] group-focus-within:text-[var(--primary)]">To</span>
+          <span className="mt-0.5 flex items-center gap-2 lg:mt-1 lg:gap-2.5">
+            {!move.to && <MagnifyingGlass size={18} className="flex-none text-[#8c9ab3] lg:hidden" aria-hidden />}
+            <Destination move={move} setMove={setMove} />
+            {move.to && (
+              <span className="flex-none text-xs font-extrabold tracking-[0.06em] text-[var(--muted)] lg:text-[13px]">
+                {destinationCode(move)}
+              </span>
+            )}
+          </span>
+        </label>
+      </div>
+
+      <fieldset className="col-span-2 lg:col-start-11 lg:col-end-25 lg:row-start-1 lg:flex lg:items-center lg:justify-end lg:gap-3">
+        <legend className="mb-1.5 text-[13px] font-bold lg:float-left lg:mb-0 lg:mr-3 lg:text-[var(--muted)]">
+          What are you moving?
+        </legend>
+        <div className="grid grid-cols-3 gap-1 rounded-xl bg-[var(--chip)] p-1 lg:flex">
+          {MOVE_TYPES.map((t) => {
+            const Icon = TYPE_ICONS[t.value];
+            const on = move.moveType === t.value;
+            return (
+              <button
+                key={t.value}
+                type="button"
+                aria-pressed={on}
+                onClick={() => set("moveType", t.value)}
+                className={`flex h-12 flex-col items-center justify-center gap-px whitespace-nowrap rounded-[9px] text-[13px] transition lg:h-10 lg:flex-row lg:gap-2 lg:px-3.5 lg:text-sm ${
+                  on
+                    ? "bg-[var(--card)] font-extrabold text-[var(--primary)] shadow-[0_1px_2px_rgb(13_27_62/0.1),0_0_0_1.5px_var(--primary)]"
+                    : "font-bold text-[var(--muted)] hover:bg-[var(--card)] hover:text-[var(--ink)]"
+                }`}
+              >
+                <Icon size={16} weight={on ? "bold" : "regular"} aria-hidden />
+                <span className="lg:hidden">{t.short}</span>
+                <span className="hidden lg:inline">{t.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <label className="block min-w-0 text-[13px] font-bold lg:col-start-18 lg:col-end-25 lg:row-start-3 lg:-ml-3 lg:mt-5 lg:cursor-pointer lg:rounded-r-2xl lg:border lg:border-l-0 lg:border-[var(--line-strong)] lg:px-5 lg:py-3.5 lg:transition lg:focus-within:shadow-[inset_0_0_0_2px_var(--primary)] lg:hover:bg-[#f8fafd]">
+        <span className="lg:text-xs lg:text-[var(--muted)]">Moving date</span>
+        <input
+          type="date"
+          min={today}
+          value={move.date}
+          onChange={(e) => set("date", e.target.value)}
+          className={`${fieldClass} lg:mt-1 lg:h-auto lg:min-h-0 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:text-[22px] lg:font-extrabold lg:tracking-[-0.02em] lg:focus:shadow-none`}
+        />
+      </label>
+
+      <Field label="Phone" icon={<Phone size={18} />} className="lg:col-start-13 lg:col-end-18">
+        <input type="tel" value={move.phone} onChange={(e) => set("phone", e.target.value)} autoComplete="tel" className={fieldClass} />
+      </Field>
+      <Field label="Full name" icon={<User size={18} />} className="col-span-2 lg:col-start-1 lg:col-end-7">
+        <input value={move.name} onChange={(e) => set("name", e.target.value)} autoComplete="name" className={fieldClass} />
+      </Field>
+      <Field label="Email" icon={<EnvelopeSimple size={18} />} className="col-span-2 lg:col-start-7 lg:col-end-13">
+        <input
+          type="email"
+          value={move.email}
+          onChange={(e) => set("email", e.target.value)}
+          autoComplete="email"
+          className={fieldClass}
+        />
+      </Field>
+
+      <button className="btn-primary group col-span-2 mt-1 flex h-14 items-center justify-between rounded-[14px] px-5 text-base font-extrabold shadow-[0_10px_24px_-12px_var(--primary)] transition lg:col-start-18 lg:col-end-25 lg:row-start-4 lg:mt-4 lg:self-end">
         Next: scan your rooms <ArrowRight size={18} weight="bold" className="transition-transform group-hover:translate-x-1" />
       </button>
     </form>
+  );
+}
+
+/** A labelled field; on desktops it sits in the contact row with a leading icon. */
+function Field({ label, icon, className, children }: { label: string; icon: ReactNode; className: string; children: ReactNode }) {
+  return (
+    <label className={`block min-w-0 text-[13px] font-bold lg:row-start-4 lg:mt-4 ${className}`}>
+      {label}
+      <span className="relative block lg:[&_input]:pl-10">
+        <span aria-hidden className="pointer-events-none absolute left-3.5 top-[calc(50%+3px)] hidden -translate-y-1/2 text-[var(--muted)] lg:block">
+          {icon}
+        </span>
+        {children}
+      </span>
+    </label>
   );
 }
 
@@ -165,7 +245,7 @@ function Destination({ move, setMove }: { move: MoveDetails; setMove: Dispatch<S
       <select
         value={countryBySlug(move.to) ? move.to : ""}
         onChange={(e) => setMove((m) => ({ ...m, to: e.target.value, toPlace: undefined }))}
-        className={inputClass}
+        className={`${routeInputClass} cursor-pointer`}
       >
         <option value="">Select</option>
         {COUNTRIES.filter((c) => c.slug !== ORIGIN).map((c) => (
@@ -188,7 +268,7 @@ function Destination({ move, setMove }: { move: MoveDetails; setMove: Dispatch<S
       }}
       // Enter picks a suggestion; it must not submit the form.
       onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
-      className={inputClass}
+      className={routeInputClass}
     />
   );
 }

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-/* Brand: blue and white, always light (the client's choice). */
+/* Brand: blue and white, always light (the client's choice). Booking design
+   system: Manrope, airline-style panels, soft blue elevation. */
 :root {
   color-scheme: light;
   --paper: #f4f7fc;
@@ -8,9 +9,22 @@
   --ink: #0d1b3e;
   --muted: #5a6a88;
   --line: #e0e7f3;
+  --line-strong: #d3dcea;
   --chip: #edf2fb;
   --primary: #0a66c2;
+  --primary-hover: #0957a6;
+  --primary-press: #084a8c;
+  --primary-50: #e8f1fb;
+  --primary-100: #d6e7f9;
+  --primary-200: #bbd7f5;
+  --primary-300: #9ec5ee;
   --on-primary: #ffffff;
+  --teal-50: #e6f7f5;
+  --teal-ink: #0f766e;
+  --route-dash: #9fb3d1;
+  --shadow-raised: 0 0 0 1px var(--line), 0 1px 2px rgb(13 27 62 / 0.05), 0 18px 40px -24px rgb(10 70 150 / 0.3);
+  --shadow-float: 0 1px 2px rgb(13 27 62 / 0.06), 0 40px 80px -40px rgb(10 70 150 / 0.45);
+  --shadow-sheet: 0 -1px 0 var(--line), 0 -16px 40px -20px rgb(10 70 150 / 0.35);
   --tape: #7ab6f2; /* light-blue highlight */
   --logo-dot: #14b8a6; /* the teal full stop in the Moversly logo */
   --accent: #0a66c2;
@@ -39,15 +53,53 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-manrope);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-manrope), system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Elevation steps from the design system. */
+.shadow-raised {
+  box-shadow: var(--shadow-raised);
+}
+.shadow-float {
+  box-shadow: var(--shadow-float);
+}
+.shadow-sheet {
+  box-shadow: var(--shadow-sheet);
+}
+
+/* Small caps labels: "SUGGESTED SHIPPING". */
+.label-caps {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Primary action: deepens on hover, presses in. */
+.btn-primary {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+.btn-primary:hover {
+  background: var(--primary-hover);
+}
+.btn-primary:active {
+  background: var(--primary-press);
+}
+.btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  translate: none;
+  box-shadow: none;
 }
 
 html {
@@ -227,14 +279,17 @@ input[type="date"]::-webkit-date-and-time-value {
   cursor: pointer;
 }
 
-/* Headlines break evenly; paragraphs avoid one-word last lines. */
-h1,
-h2,
-h3 {
-  text-wrap: balance;
-}
-p {
-  text-wrap: pretty;
+/* Headlines break evenly; paragraphs avoid one-word last lines. In the base
+   layer, so utilities like `truncate` still win. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
 }
 
 /* Keyboard focus is always visible (form fields keep their own ring). */
