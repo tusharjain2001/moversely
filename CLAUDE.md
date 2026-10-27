@@ -61,6 +61,11 @@ Phone ──HTTPS──► instant-booking.moversly.com  (DNS: client's Route 53
   questions, and common questions (cost, timing, documents, pets, services, privacy) get fixed answers
   so it can't invent prices. The old Qwen3 1.7B via Ollama (`survey-chat`) is still installed on EC2 as
   a backup: remove the `CHAT_AI_PROVIDER` line to switch back.
+- **Other country pages' chats** (e.g. Moving to India, a separate React site whose guided chat runs in
+  the browser) send only free questions to `POST /ai/chat/ask` `{site, chat_id, messages, context}`.
+  Each site has its own instructions file `ai/survey/sites/<site>.txt` (a `CUSTOMS: singapore export,
+  india import` line pulls in our customs facts). Same model and limits; the daily cap is shared.
+  Nothing is stored. A new country page = a new `sites/<name>.txt` + deploy.
 
 ### AI models (all free for commercial use)
 

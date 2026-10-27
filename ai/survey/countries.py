@@ -63,13 +63,16 @@ def find(text: str) -> str | None:
 
 def facts(slugs: list[str]) -> str:
     """Customs facts for the countries in this conversation, as plain text for
-    the chat model to answer from."""
+    the chat model to answer from. "india import" gives only the arriving side."""
     lines = ["Documents needed for every international move: " + "; ".join(GENERAL_DOCUMENTS) + "."]
-    for slug in slugs:
+    for entry in slugs:
+        slug, _, only = entry.partition(" ")
         c = countries().get(slug)
         if not c:
             continue
         for kind, verb in (("export", "Leaving"), ("import", "Arriving in")):
+            if only and kind != only:
+                continue
             s = c.get(kind)
             if not s:
                 lines.append(f"{verb} {c['name']}: no customs guide available; the mover will confirm.")

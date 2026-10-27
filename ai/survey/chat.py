@@ -26,6 +26,10 @@ Paid models cost money per answer, so these limits apply to every model:
     CHAT_AI_DAILY_LIMIT model answers per day for the whole site, default 1000
                         (counted in memory, resets at midnight Singapore time)
 After a limit, the visitor gets a fixed reply; the questions and fixed answers keep working.
+
+Country pages whose chat runs in the browser (e.g. Moving to India) send only
+their free questions to ask(), with their own instructions from
+sites/<site>.txt and the same model and limits.
 """
 
 import json
@@ -33,6 +37,8 @@ import os
 import re
 import threading
 from datetime import date, datetime, timedelta, timezone
+from functools import cache
+from pathlib import Path
 
 import httpx
 
@@ -49,6 +55,9 @@ CHAT_AI_MAX_TOKENS = int(os.environ.get("CHAT_AI_MAX_TOKENS", "250"))
 CHAT_AI_PER_CHAT = int(os.environ.get("CHAT_AI_PER_CHAT", "15"))
 CHAT_AI_DAILY_LIMIT = int(os.environ.get("CHAT_AI_DAILY_LIMIT", "1000"))
 SINGAPORE = timezone(timedelta(hours=8))
+SITES = {f.stem for f in Path(__file__).with_name("sites").glob("*.txt")}
+PER_CHAT_LIMIT_REPLY = ("I've answered a lot of questions in this chat. Our moving team will help with the rest after "
+                        "you finish here.")
 
 MOVE_TYPES = {"full": "Full household", "partial": "Partial household", "boxes": "A few boxes"}
 STEPS = ["from", "to", "move_type", "date", "name", "email", "phone"]
@@ -299,6 +308,7 @@ def _system_prompt(a: dict) -> str:
 
 _daily = {"day": None, "count": 0}
 _daily_lock = threading.Lock()
+_site_chats: dict[str, int] = {}  # browser chat id -> model answers today
 _bedrock = None
 
 
@@ -308,6 +318,7 @@ def _use_daily_answer() -> bool:
     with _daily_lock:
         if _daily["day"] != today:
             _daily.update(day=today, count=0)
+            _site_chats.clear()
         if _daily["count"] >= CHAT_AI_DAILY_LIMIT:
             return False
         _daily["count"] += 1
@@ -355,9 +366,9 @@ def _bedrock_converse(system: str, history: list[dict]) -> str | None:
         return None
 
 
-def _ask_model(a: dict, history: list[dict]) -> str | None:
+def _ask_model(system: str, history: list[dict]) -> str | None:
     ask = _bedrock_converse if CHAT_AI_PROVIDER == "bedrock" else _openai_style
-    text = ask(_system_prompt(a), history[-8:])
+    text = ask(system, history[-8:])
     if text is None:
         return None
     text = re.sub(r"<think>.*?</think>", "", text, flags=re.S).strip()
@@ -373,6 +384,29 @@ def _ask_model(a: dict, history: list[dict]) -> str | None:
     if invented_price or invented_time:
         return "Our moving team will confirm prices and timings together with your quote."
     return text or None
+
+
+@cache
+def _site_prompt(site: str) -> str:
+    """sites/<site>.txt, with a "CUSTOMS: singapore export, india import" line
+    replaced by those customs facts."""
+    text = Path(__file__).with_name("sites").joinpath(f"{site}.txt").read_text(encoding="utf-8")
+    return re.sub(r"^CUSTOMS:(.*)$", lambda m: "Facts:\n" + C.facts([s.strip() for s in m[1].split(",")]),
+                  text, flags=re.M)
+
+
+def ask(site: str, chat_id: str, history: list[dict], context: str = "") -> str | None:
+    """A free question from a country page whose chat runs in the browser.
+    history ends with the visitor's question; context is what they've told
+    the chat so far ("Singapore to Mumbai, India"). None means no answer
+    (today's limit, or the model failed): the page shows its own reply."""
+    if _site_chats.get(chat_id, 0) >= CHAT_AI_PER_CHAT:
+        return PER_CHAT_LIMIT_REPLY
+    if not _use_daily_answer():
+        return None
+    _site_chats[chat_id] = _site_chats.get(chat_id, 0) + 1
+    system = _site_prompt(site) + (f"\n\nThis visitor's move so far: {context}" if context else "")
+    return _ask_model(system, history)
 
 
 def warm() -> None:
@@ -506,11 +540,10 @@ def turn(cid: str, text: str = "", value: str = "") -> dict | None:
     if text and (asking or _is_question(text) or step not in STEPS):
         reply = _fixed_answer(text, a)
         if not reply and state.get("ai_answers", 0) >= CHAT_AI_PER_CHAT:
-            reply = ("I've answered a lot of questions in this chat. Our moving team will help with the rest after "
-                     "you finish here.")
+            reply = PER_CHAT_LIMIT_REPLY
         elif not reply and _use_daily_answer():
             state["ai_answers"] = state.get("ai_answers", 0) + 1
-            reply = _ask_model(a, db.get_messages(cid))
+            reply = _ask_model(_system_prompt(a), db.get_messages(cid))
         if not reply:
             reply = "Sorry, I can't answer that right now. Our moving team will help with it after you finish here."
         return _reply(cid, state, [reply])

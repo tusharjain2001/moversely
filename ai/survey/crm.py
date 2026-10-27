@@ -2,6 +2,8 @@
 
     POST /chat                  {conversation_id?, text?, value?} -> assistant messages + next input widget
     GET  /chat/{id}             the conversation so far (to continue after a reload)
+    POST /chat/ask              {site, chat_id, messages, context?} -> {answer}: one free question
+                                from a country page whose chat runs in the browser (sites/<site>.txt)
     POST /leads                 the homepage form -> {lead_id}
     POST /leads/{id}/survey     {items, volume_ft3} once the visitor reaches the summary
     GET  /admin/leads           all leads           (header X-Admin-Password)
@@ -13,6 +15,7 @@ finished surveys are emailed to the team when SMTP is set up (see notify.py).
 
 import os
 import secrets
+from typing import Literal
 
 from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field
@@ -25,6 +28,18 @@ class ChatIn(BaseModel):
     conversation_id: str | None = Field(None, max_length=16)
     text: str = Field("", max_length=500)
     value: str = Field("", max_length=100)
+
+
+class AskMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    text: str = Field(max_length=1500)
+
+
+class AskIn(BaseModel):
+    site: str = Field(max_length=40)
+    chat_id: str = Field(min_length=8, max_length=40)
+    messages: list[AskMessage] = Field(min_length=1, max_length=8)  # the last few, ending with the question
+    context: str = Field("", max_length=300)
 
 
 class LeadIn(BaseModel):
@@ -64,6 +79,18 @@ async def chat_turn(body: ChatIn):
     if out is None:
         raise HTTPException(404, "Unknown conversation.")
     return out
+
+
+@router.post("/chat/ask")
+async def chat_ask(body: AskIn):
+    if body.site not in chat.SITES:
+        raise HTTPException(404, "Unknown site.")
+    question = body.messages[-1]
+    if question.role != "user" or not question.text.strip() or len(question.text) > 500:
+        raise HTTPException(422, "The last message must be the visitor's question (up to 500 characters).")
+    answer = await run_in_threadpool(chat.ask, body.site, body.chat_id, [m.model_dump() for m in body.messages],
+                                     body.context.strip())
+    return {"answer": answer}
 
 
 @router.get("/chat/{cid}")
