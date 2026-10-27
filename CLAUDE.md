@@ -34,7 +34,7 @@ Phone ──HTTPS──► instant-booking.moversly.com  (DNS: client's Route 53
                   Caddy (HTTPS, Let's Encrypt, auto-renew) ─► Next.js website :3000
                                                                └─ /ai/* ─► FastAPI main API :8000
                                                                             ├─► Modal GPU (room videos)
-                                                                            ├─► Ollama + Qwen3 1.7B on the same EC2 (chat)
+                                                                            ├─► Amazon Bedrock Claude Haiku 4.5, us-east-1 (chat)
                                                                             ├─► Gmail SMTP (lead emails)
                                                                             └─► DynamoDB "survey-leads" (leads only)
 ```
@@ -52,11 +52,15 @@ Phone ──HTTPS──► instant-booking.moversly.com  (DNS: client's Route 53
   the server's memory while it runs (cleared after a day or on restart), and the survey result is kept
   in memory only so the "survey done" email can include it. Code: `ai/survey/db_dynamo.py`, chosen by
   `DATABASE_URL=dynamodb`. On the laptop/Colab the default is a SQLite file (`ai/data/survey.db`).
-- **Chat model:** Qwen3 1.7B via Ollama (custom model `survey-chat` from `ai/chat-model/Modelfile`,
-  CPU only). Our code runs the conversation; the model is only asked free-typed questions, and common
-  questions (cost, timing, documents, pets, services, privacy) get fixed answers so it can't invent
-  prices. OpenAI was planned instead but the client's key isn't ready; switching is only settings:
-  `CHAT_AI_URL=https://api.openai.com/v1`, `CHAT_AI_MODEL`, `CHAT_AI_KEY`, `CHAT_AI_EXTRA={}`.
+- **Chat model:** Claude Haiku 4.5 on the client's Amazon Bedrock (`CHAT_AI_PROVIDER=bedrock`,
+  `CHAT_AI_MODEL=us.anthropic.claude-haiku-4-5-20251001-v1:0`, `CHAT_AI_REGION=us-east-1`; the "us."
+  id must be called from a US region). The EC2 role `survey-server-role` has `AmazonBedrockLimitedAccess`
+  (added 2026-10-27), so no key is stored. Bedrock is paid (client: "be careful, it costs more"), so
+  `chat.py` has limits: 250-token answers, 15 AI answers per chat, 1000 per day (in memory, Singapore
+  midnight), then fixed replies. Our code runs the conversation; the model is only asked free-typed
+  questions, and common questions (cost, timing, documents, pets, services, privacy) get fixed answers
+  so it can't invent prices. The old Qwen3 1.7B via Ollama (`survey-chat`) is still installed on EC2 as
+  a backup: remove the `CHAT_AI_PROVIDER` line to switch back.
 
 ### AI models (all free for commercial use)
 
@@ -159,7 +163,7 @@ Never commit `ai/.env`, `web/.env.local`, `~/.modal.toml`, `~/.aws/`, or the `.p
 | File | Keys |
 |---|---|
 | `ai/.env` (laptop) | `ADMIN_PASSWORD`, `SMTP_USER`, `SMTP_PASSWORD` (Gmail app password), optional `LEAD_EMAIL_TO`, `SURVEY_GPU=modal`, `SURVEY_DEPTH` (local GPU only), `HF_HUB_DISABLE_SYMLINKS_WARNING=1`, `TRANSFORMERS_VERBOSITY=error` |
-| `/opt/survey/ai/.env` (EC2) | `SITE_DOMAIN=instant-booking.moversly.com` (domain only, no http://), `ADMIN_PASSWORD`, `DATABASE_URL=dynamodb`, `AWS_REGION=ap-southeast-1`, `SURVEY_GPU=modal`, `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET`, `SMTP_USER`, `SMTP_PASSWORD`, optional `LEAD_EMAIL_TO`, optional `CHAT_AI_*` for OpenAI |
+| `/opt/survey/ai/.env` (EC2) | `SITE_DOMAIN=instant-booking.moversly.com` (domain only, no http://), `ADMIN_PASSWORD`, `DATABASE_URL=dynamodb`, `AWS_REGION=ap-southeast-1`, `SURVEY_GPU=modal`, `MODAL_TOKEN_ID`, `MODAL_TOKEN_SECRET`, `SMTP_USER`, `SMTP_PASSWORD`, optional `LEAD_EMAIL_TO`, `CHAT_AI_PROVIDER=bedrock`, `CHAT_AI_MODEL`, `CHAT_AI_REGION=us-east-1` (optional `CHAT_AI_MAX_TOKENS` / `CHAT_AI_PER_CHAT` / `CHAT_AI_DAILY_LIMIT`) |
 | `web/.env.local` (laptop and EC2) | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (if the key is restricted by website, allow the live domain) |
 | Colab Secrets | `SMTP_USER`, `SMTP_PASSWORD`, `LEAD_EMAIL_TO`, `SMTP_HOST`, `SMTP_PORT`, `GOOGLE_MAPS_API_KEY` |
 

@@ -13,12 +13,26 @@ with Ollama on this laptop, a model host in the cloud, or a paid service:
     CHAT_AI_KEY    API key, if the service needs one
     CHAT_AI_EXTRA  extra request fields as JSON; the default turns off Qwen3's
                    slow "thinking" mode. Set to {} for services that reject it.
+
+Or Claude on Amazon Bedrock, using the server's AWS role (or `aws configure`
+on a laptop), so no key is stored:
+    CHAT_AI_PROVIDER=bedrock
+    CHAT_AI_MODEL    the Bedrock model id, e.g. us.anthropic.claude-haiku-4-5-20251001-v1:0
+    CHAT_AI_REGION   default us-east-1 (a "us." model id must be called from a US region)
+
+Paid models cost money per answer, so these limits apply to every model:
+    CHAT_AI_MAX_TOKENS  longest answer, default 250 tokens (about 150 words)
+    CHAT_AI_PER_CHAT    model answers per chat, default 15
+    CHAT_AI_DAILY_LIMIT model answers per day for the whole site, default 1000
+                        (counted in memory, resets at midnight Singapore time)
+After a limit, the visitor gets a fixed reply; the questions and fixed answers keep working.
 """
 
 import json
 import os
 import re
-from datetime import date, datetime
+import threading
+from datetime import date, datetime, timedelta, timezone
 
 import httpx
 
@@ -29,6 +43,12 @@ CHAT_AI_URL = os.environ.get("CHAT_AI_URL", "http://localhost:11434/v1").rstrip(
 CHAT_AI_MODEL = os.environ.get("CHAT_AI_MODEL", "survey-chat")
 CHAT_AI_KEY = os.environ.get("CHAT_AI_KEY", "")
 CHAT_AI_EXTRA = json.loads(os.environ.get("CHAT_AI_EXTRA", '{"reasoning_effort": "none"}'))
+CHAT_AI_PROVIDER = os.environ.get("CHAT_AI_PROVIDER", "openai").lower()
+CHAT_AI_REGION = os.environ.get("CHAT_AI_REGION", "us-east-1")
+CHAT_AI_MAX_TOKENS = int(os.environ.get("CHAT_AI_MAX_TOKENS", "250"))
+CHAT_AI_PER_CHAT = int(os.environ.get("CHAT_AI_PER_CHAT", "15"))
+CHAT_AI_DAILY_LIMIT = int(os.environ.get("CHAT_AI_DAILY_LIMIT", "1000"))
+SINGAPORE = timezone(timedelta(hours=8))
 
 MOVE_TYPES = {"full": "Full household", "partial": "Partial household", "boxes": "A few boxes"}
 STEPS = ["from", "to", "move_type", "date", "name", "email", "phone"]
@@ -254,7 +274,8 @@ def _system_prompt(a: dict) -> str:
     covered = ", ".join(c["name"] for c in C.countries().values())
     return (
         "You are the AI moving assistant on an international moving company's website. "
-        "Answer the visitor's latest message in at most 3 short sentences of plain English. "
+        "Answer the visitor's latest message in at most 3 short sentences of plain English, as plain text "
+        "without markdown. "
         "Do not ask the visitor questions; the website asks the next question itself.\n"
         "Rules:\n"
         f"- If the message is not about moving house, shipping belongings, customs or this website, reply with "
@@ -276,16 +297,68 @@ def _system_prompt(a: dict) -> str:
     )
 
 
-def _ask_model(a: dict, history: list[dict]) -> str | None:
-    msgs = [{"role": "system", "content": _system_prompt(a)}]
-    msgs += [{"role": m["role"], "content": m["text"]} for m in history[-8:]]
+_daily = {"day": None, "count": 0}
+_daily_lock = threading.Lock()
+_bedrock = None
+
+
+def _use_daily_answer() -> bool:
+    """Count one model answer for today; False once today's limit is reached."""
+    today = datetime.now(SINGAPORE).date()
+    with _daily_lock:
+        if _daily["day"] != today:
+            _daily.update(day=today, count=0)
+        if _daily["count"] >= CHAT_AI_DAILY_LIMIT:
+            return False
+        _daily["count"] += 1
+        return True
+
+
+def _openai_style(system: str, history: list[dict]) -> str | None:
+    msgs = [{"role": "system", "content": system}]
+    msgs += [{"role": m["role"], "content": m["text"]} for m in history]
     headers = {"Authorization": f"Bearer {CHAT_AI_KEY}"} if CHAT_AI_KEY else {}
     try:
         r = httpx.post(f"{CHAT_AI_URL}/chat/completions", headers=headers, timeout=90,
-                       json={"model": CHAT_AI_MODEL, "messages": msgs, "max_tokens": 220, **CHAT_AI_EXTRA})
+                       json={"model": CHAT_AI_MODEL, "messages": msgs, "max_tokens": CHAT_AI_MAX_TOKENS,
+                             **CHAT_AI_EXTRA})
         r.raise_for_status()
-        text = r.json()["choices"][0]["message"]["content"] or ""
+        return r.json()["choices"][0]["message"]["content"] or ""
     except (httpx.HTTPError, KeyError, IndexError, ValueError):
+        return None
+
+
+def _bedrock_converse(system: str, history: list[dict]) -> str | None:
+    global _bedrock
+    import boto3
+    from botocore.config import Config
+    from botocore.exceptions import BotoCoreError, ClientError
+
+    # Bedrock wants the chat to start with the visitor and alternate turns, so
+    # back-to-back messages from the same side are joined.
+    msgs = []
+    for m in history:
+        if msgs and msgs[-1]["role"] == m["role"]:
+            msgs[-1]["content"][0]["text"] += "\n" + m["text"]
+        elif msgs or m["role"] == "user":
+            msgs.append({"role": m["role"], "content": [{"text": m["text"]}]})
+    if not msgs:
+        return None
+    try:
+        if _bedrock is None:
+            _bedrock = boto3.client("bedrock-runtime", region_name=CHAT_AI_REGION,
+                                    config=Config(read_timeout=30, retries={"max_attempts": 2}))
+        r = _bedrock.converse(modelId=CHAT_AI_MODEL, system=[{"text": system}], messages=msgs,
+                              inferenceConfig={"maxTokens": CHAT_AI_MAX_TOKENS})
+        return "".join(c.get("text", "") for c in r["output"]["message"]["content"])
+    except (BotoCoreError, ClientError, KeyError):
+        return None
+
+
+def _ask_model(a: dict, history: list[dict]) -> str | None:
+    ask = _bedrock_converse if CHAT_AI_PROVIDER == "bedrock" else _openai_style
+    text = ask(_system_prompt(a), history[-8:])
+    if text is None:
         return None
     text = re.sub(r"<think>.*?</think>", "", text, flags=re.S).strip()
     if OFF_TOPIC in text:
@@ -304,6 +377,8 @@ def _ask_model(a: dict, history: list[dict]) -> str | None:
 
 def warm() -> None:
     """Load the chat model now, so the first visitor's question isn't slow."""
+    if CHAT_AI_PROVIDER == "bedrock":  # always ready, and every call is paid
+        return
     try:
         httpx.post(f"{CHAT_AI_URL}/chat/completions", timeout=300,
                    headers={"Authorization": f"Bearer {CHAT_AI_KEY}"} if CHAT_AI_KEY else {},
@@ -429,7 +504,13 @@ def turn(cid: str, text: str = "", value: str = "") -> dict | None:
     # A question or something we couldn't read: a fixed answer if we have one,
     # otherwise the model.
     if text and (asking or _is_question(text) or step not in STEPS):
-        reply = _fixed_answer(text, a) or _ask_model(a, db.get_messages(cid))
+        reply = _fixed_answer(text, a)
+        if not reply and state.get("ai_answers", 0) >= CHAT_AI_PER_CHAT:
+            reply = ("I've answered a lot of questions in this chat. Our moving team will help with the rest after "
+                     "you finish here.")
+        elif not reply and _use_daily_answer():
+            state["ai_answers"] = state.get("ai_answers", 0) + 1
+            reply = _ask_model(a, db.get_messages(cid))
         if not reply:
             reply = "Sorry, I can't answer that right now. Our moving team will help with it after you finish here."
         return _reply(cid, state, [reply])

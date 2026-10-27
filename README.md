@@ -62,6 +62,8 @@ environment variables on a server; see `ai/.env.example`):
 | `CHAT_AI_URL` / `CHAT_AI_MODEL` | Ollama here, `survey-chat` | any OpenAI-style endpoint: Ollama or vLLM on a GPU server, a model host, or a paid API |
 | `CHAT_AI_KEY` | unset | the service's API key, if any |
 | `CHAT_AI_EXTRA` | turns off Qwen3 "thinking" | `{}` for services that don't accept `reasoning_effort` |
+| `CHAT_AI_PROVIDER` / `CHAT_AI_REGION` | unset (OpenAI-style) | `bedrock` + `us-east-1` for Claude on Amazon Bedrock (`CHAT_AI_MODEL` = Bedrock model id; uses the EC2 role, no key) |
+| `CHAT_AI_MAX_TOKENS` / `CHAT_AI_PER_CHAT` / `CHAT_AI_DAILY_LIMIT` | 250 / 15 / 1000 | cost limits: answer length, AI answers per chat, AI answers per day (Singapore time) |
 | `ADMIN_PASSWORD` | in `ai/.env` | a strong password |
 | `SMTP_USER` / `SMTP_PASSWORD` / `LEAD_EMAIL_TO` | in `ai/.env` | the same, as server secrets (Colab: Secrets panel) |
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (website) | in `web/.env.local`: Google search for "Moving to" (Maps JavaScript API + Places API) | the same key, restricted to the site's domain; without it the form shows a country list |
