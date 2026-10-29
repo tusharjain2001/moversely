@@ -1,8 +1,11 @@
 """Move prices from the sales team's Google Sheets, for the country pages.
 
     GET /prices?route=india&city=Mumbai&cft=650 [&origin=Singapore]
-        -> {price, currency, cft, band, type, shipment_type, container_type, port, tab}
+        -> {price, currency, cft, band, type, shipment_type, container_type, port, tab, options}
         or {price: null, cft, reason}  (reason: origin | city | volume; our team quotes instead)
+    options: one {price, band, type, shipment_type, container_type} per container type that fits,
+    cheapest first (the top-level fields are the cheapest). At 351-600 CFT that is Console (shared,
+    slower) and 20' FCL (own container, faster), and the customer chooses.
 
 Settings (ai/.env):
     GOOGLE_SERVICE_ACCOUNT_FILE  path to the service account's JSON key (the "robot" the sheets are shared with)
@@ -12,9 +15,8 @@ Settings (ai/.env):
 One sheet per route, one tab per city named "<Origin> to <City>". In each tab the
 row "Line Item" gives Console / 20' FCL / 40' FCL, the row "Volume in CFT" the
 bands ("Upto 50 CFT", "351 - 400 CFT"), and the row "Quote Amount (SGD)" the
-price. Rows are found by their label, so sales can add or move rows. Where two
-bands fit (Console and 20' FCL overlap at 351-600 CFT), the cheaper one is used.
-If a sheet can't be read, the last good copy is used.
+price. Rows are found by their label, so sales can add or move rows. If a sheet
+can't be read, the last good copy is used.
 """
 
 import logging
@@ -136,19 +138,14 @@ def price(route: str, origin: str, city: str, cft: float) -> dict:
     fits = [b for b in tab["bands"] if b["range"][0] <= cft <= b["range"][1]]
     if not fits:
         return {"price": None, "cft": cft, "reason": "volume"}
-    best = min(fits, key=lambda b: b["price"])
-    shipment_type, container_type = SHIPMENT[best["type"].lower()]
-    return {
-        "price": round(best["price"]),
-        "currency": "SGD",
-        "cft": cft,
-        "band": best["label"],
-        "type": best["type"],
-        "shipment_type": shipment_type,
-        "container_type": container_type,
-        "port": tab["port"],
-        "tab": tab["tab"],
-    }
+    options = {}  # the cheapest band of each type, cheapest type first
+    for b in sorted(fits, key=lambda b: b["price"]):
+        if b["type"] not in options:
+            shipment_type, container_type = SHIPMENT[b["type"].lower()]
+            options[b["type"]] = {"price": round(b["price"]), "band": b["label"], "type": b["type"],
+                                  "shipment_type": shipment_type, "container_type": container_type}
+    options = list(options.values())
+    return {**options[0], "currency": "SGD", "cft": cft, "port": tab["port"], "tab": tab["tab"], "options": options}
 
 
 @router.get("/prices")
