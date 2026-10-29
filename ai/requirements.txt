@@ -13,4 +13,5 @@ httpx
 fastapi[standard]
 python-multipart
 modal
+google-auth[requests]  # reads the sales price sheets (Apache-2.0)
 # On a server with Postgres, also: psycopg[binary]

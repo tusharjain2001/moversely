@@ -6,3 +6,4 @@ sqlalchemy==2.0.55
 httpx
 modal==1.6.1
 boto3
+google-auth[requests]  # reads the sales price sheets (Apache-2.0)

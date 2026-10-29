@@ -66,6 +66,12 @@ Phone ──HTTPS──► instant-booking.moversly.com  (DNS: client's Route 53
   Each site has its own instructions file `ai/survey/sites/<site>.txt` (a `CUSTOMS: singapore export,
   india import` line pulls in our customs facts). Same model and limits; the daily cap is shared.
   Nothing is stored. A new country page = a new `sites/<name>.txt` + deploy.
+- **Country page prices** come from the sales team's Google Sheets: `GET /ai/prices?route=india&city=…&cft=…`
+  (`ai/survey/prices.py`). One sheet per route, one tab per city "Singapore to <City>"; rows found by label
+  ("Line Item", "Volume in CFT", "Quote Amount (SGD)"); cheaper of overlapping bands; cached 1 hour. Read with
+  the client's Google service account `pricing-reader@moversly-pricing.iam.gserviceaccount.com` (Sheets API only,
+  Drive API off, so sheets are listed by id in `PRICE_SHEETS`). Sales update the Freight tab; a new route = share
+  the sheet with the robot + add `route=<sheet id>` to `PRICE_SHEETS` + restart.
 
 ### AI models (all free for commercial use)
 

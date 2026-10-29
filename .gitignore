@@ -11,3 +11,6 @@ node_modules/
 tools/
 fidi-guides/
 ai/data/
+
+# Google service account key for the price sheets (server only)
+ai/google-key.json
