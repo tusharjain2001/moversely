@@ -71,7 +71,11 @@ Phone ──HTTPS──► instant-booking.moversly.com  (DNS: client's Route 53
   ("Line Item", "Volume in CFT", "Quote Amount (SGD)"); cached 1 hour. At 351–600 CFT both Console (shared,
   slower) and 20' FCL (own container, faster) fit: the response lists both in `options` and the customer
   chooses (sales confirmed 2026-10-29). Each option has a `breakdown` {origin, freight, destination, margin}
-from the sheet's subtotal rows (empty Margin = 0), shown on the India quotation (2026-10-30). Read with
+from the sheet's subtotal rows (empty Margin = 0), shown on the India quotation (2026-10-30).
+  **Payment amount is set by our server:** `POST /ai/payment` (`ai/survey/payments.py`) gets only the chosen option,
+  looks the price up in the sheet again (409 `price_changed` if it differs from what the page showed), then calls
+  api.moversly.com `create-pricing-with-split` + `survey-app/payment-intent` server to server and returns only the
+  Stripe client secret, so the browser can't change the amount (2026-10-30). Read with
   the client's Google service account `pricing-reader@moversly-pricing.iam.gserviceaccount.com` (Sheets API only,
   Drive API off, so sheets are listed by id in `PRICE_SHEETS`). Sales update the Freight tab; a new route = share
   the sheet with the robot + add `route=<sheet id>` to `PRICE_SHEETS` + restart.

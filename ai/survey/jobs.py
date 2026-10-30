@@ -4,7 +4,7 @@
     GET  /jobs/{id}   -> {"status": queued|running|done|error, "stage", "progress", "result"?, "error"?}
     GET  /catalog     -> the item catalog (for manual "Add item")
     GET  /health
-    plus chat, leads and admin endpoints (see crm.py) and prices (see prices.py)
+    plus chat, leads and admin endpoints (see crm.py), prices (see prices.py) and payments (see payments.py)
 
 Processing a room takes from several seconds to a few minutes, so the upload
 returns at once and the browser polls for progress.
@@ -19,6 +19,7 @@ from starlette.concurrency import run_in_threadpool
 
 from .catalog import load_catalog
 from .crm import router as crm_router
+from .payments import router as payments_router
 from .prices import router as prices_router
 
 MAX_UPLOAD_MB = int(os.environ.get("SURVEY_MAX_UPLOAD_MB", 500))
@@ -36,6 +37,7 @@ def create_app(backend: JobBackend) -> FastAPI:
     app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST"], allow_headers=["*"])
     app.include_router(crm_router)
     app.include_router(prices_router)
+    app.include_router(payments_router)
 
     @app.get("/health")
     def health():
