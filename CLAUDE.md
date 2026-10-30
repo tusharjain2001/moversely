@@ -70,7 +70,8 @@ Phone ──HTTPS──► instant-booking.moversly.com  (DNS: client's Route 53
   (`ai/survey/prices.py`). One sheet per route, one tab per city "Singapore to <City>"; rows found by label
   ("Line Item", "Volume in CFT", "Quote Amount (SGD)"); cached 1 hour. At 351–600 CFT both Console (shared,
   slower) and 20' FCL (own container, faster) fit: the response lists both in `options` and the customer
-  chooses (sales confirmed 2026-10-29). Read with
+  chooses (sales confirmed 2026-10-29). Each option has a `breakdown` {origin, freight, destination, margin}
+from the sheet's subtotal rows (empty Margin = 0), shown on the India quotation (2026-10-30). Read with
   the client's Google service account `pricing-reader@moversly-pricing.iam.gserviceaccount.com` (Sheets API only,
   Drive API off, so sheets are listed by id in `PRICE_SHEETS`). Sales update the Freight tab; a new route = share
   the sheet with the robot + add `route=<sheet id>` to `PRICE_SHEETS` + restart.

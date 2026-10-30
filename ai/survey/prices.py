@@ -1,11 +1,14 @@
 """Move prices from the sales team's Google Sheets, for the country pages.
 
     GET /prices?route=india&city=Mumbai&cft=650 [&origin=Singapore]
-        -> {price, currency, cft, band, type, shipment_type, container_type, port, tab, options}
+        -> {price, currency, cft, band, type, shipment_type, container_type, breakdown, port, tab, options}
         or {price: null, cft, reason}  (reason: origin | city | volume; our team quotes instead)
-    options: one {price, band, type, shipment_type, container_type} per container type that fits,
-    cheapest first (the top-level fields are the cheapest). At 351-600 CFT that is Console (shared,
-    slower) and 20' FCL (own container, faster), and the customer chooses.
+    options: one {price, band, type, shipment_type, container_type, breakdown} per container type
+    that fits, cheapest first (the top-level fields are the cheapest). At 351-600 CFT that is Console
+    (shared, slower) and 20' FCL (own container, faster), and the customer chooses.
+    breakdown: {origin, freight, destination, margin} in whole SGD adding up to the price, from the
+    rows "Origin - Total Cost (SGD)", "Freight all in Rate (SGD)", "Destination - Total Cost (SGD)"
+    and "Margin (SGD)" (empty = 0); null when those rows don't add up to the quote amount.
 
 Settings (ai/.env):
     GOOGLE_SERVICE_ACCOUNT_FILE  path to the service account's JSON key (the "robot" the sheets are shared with)
@@ -44,6 +47,12 @@ SHIPMENT = {
     "20' fcl": ("FCL", "FT_20"),
     "40' fcl": ("FCL", "FT_40"),
 }
+PARTS = {
+    "origin": "origin - total cost (sgd)",
+    "freight": "freight all in rate (sgd)",
+    "destination": "destination - total cost (sgd)",
+    "margin": "margin (sgd)",
+}
 
 _cache: dict[str, tuple[float, dict]] = {}  # route -> (read at, {city: tab})
 _lock = threading.Lock()
@@ -70,6 +79,20 @@ def _band(label) -> tuple[int, int] | None:
     return (nums[0], nums[1]) if len(nums) == 2 else None
 
 
+def _num(row: list, i: int) -> float:
+    value = row[i] if i < len(row) else None
+    return value if isinstance(value, (int, float)) else 0
+
+
+def _breakdown(parts: dict | None, total: int) -> dict | None:
+    """Whole-dollar parts that add up to the rounded total (the rounding goes on the largest part)."""
+    if not parts:
+        return None
+    out = {k: round(v) for k, v in parts.items()}
+    out[max(out, key=out.get)] += total - sum(out.values())
+    return out
+
+
 def _parse_tab(title: str, rows: list[list]) -> tuple[str, str, dict] | None:
     """(origin, city, tab) from one city tab, or None if it isn't one."""
     origin, sep, city = title.strip().partition(" to ")
@@ -80,12 +103,16 @@ def _parse_tab(title: str, rows: list[list]) -> tuple[str, str, dict] | None:
     if not (bands and quote):
         return None
     port = next((str(r[0]).split(":", 1)[1].strip() for r in rows if r and str(r[0]).upper().startswith("POE:")), "")
+    part_rows = {k: label.get(name, []) for k, name in PARTS.items()}
     out, kind = [], ""
     for i in range(1, len(bands)):
         kind = str(types[i]).strip() if i < len(types) and str(types[i]).strip() else kind  # merged header cells
         rng, price = _band(bands[i]), quote[i] if i < len(quote) else None
         if rng and isinstance(price, (int, float)) and price > 0 and kind.lower() in SHIPMENT:
-            out.append({"label": str(bands[i]).strip(), "range": rng, "type": kind, "price": price})
+            parts = {k: _num(r, i) for k, r in part_rows.items()}
+            # Only shown when it matches the quote, e.g. not if sales add a charge outside these rows.
+            parts = parts if abs(sum(parts.values()) - price) < 1 else None
+            out.append({"label": str(bands[i]).strip(), "range": rng, "type": kind, "price": price, "parts": parts})
     city = city.split(",")[0].strip().lower()
     return origin.strip().lower(), city, {"tab": title.strip(), "port": port, "bands": out}
 
@@ -143,7 +170,8 @@ def price(route: str, origin: str, city: str, cft: float) -> dict:
         if b["type"] not in options:
             shipment_type, container_type = SHIPMENT[b["type"].lower()]
             options[b["type"]] = {"price": round(b["price"]), "band": b["label"], "type": b["type"],
-                                  "shipment_type": shipment_type, "container_type": container_type}
+                                  "shipment_type": shipment_type, "container_type": container_type,
+                                  "breakdown": _breakdown(b["parts"], round(b["price"]))}
     options = list(options.values())
     return {**options[0], "currency": "SGD", "cft": cft, "port": tab["port"], "tab": tab["tab"], "options": options}
 
