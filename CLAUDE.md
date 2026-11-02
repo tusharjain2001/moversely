@@ -72,6 +72,11 @@ Phone ──HTTPS──► instant-booking.moversly.com  (DNS: client's Route 53
   slower) and 20' FCL (own container, faster) fit: the response lists both in `options` and the customer
   chooses (sales confirmed 2026-10-29). Each option has a `breakdown` {origin, freight, destination, margin}
 from the sheet's subtotal rows (empty Margin = 0), shown on the India quotation (2026-10-30).
+  **Port tab** (2026-11-02): "Singapore to India (POE: Chennai)" prices Chennai and, from its "Chennai to Other
+  Cities" list, ~60 more cities = Chennai price + that city's extra charge per band (Console only; FCL = Chennai
+  price), shown as an "Inland transport" line (`breakdown.inland`, `via`). A city's own tab (Mumbai, Bangalore)
+  comes before the list; the port tab beats the old "Singapore to Chennai" tab. City names are matched letters-only
+  with aliases (`CITY_NAMES` in prices.py, e.g. Delhi NCR / New Delhi, Mysore / Mysuru). Tabs are read to row 500.
   **Payment amount is set by our server:** `POST /ai/payment` (`ai/survey/payments.py`) gets only the chosen option,
   looks the price up in the sheet again (409 `price_changed` if it differs from what the page showed), then calls
   api.moversly.com `create-pricing-with-split` + `survey-app/payment-intent` server to server and returns only the
