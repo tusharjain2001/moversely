@@ -325,13 +325,13 @@ def _use_daily_answer() -> bool:
         return True
 
 
-def _openai_style(system: str, history: list[dict]) -> str | None:
+def _openai_style(system: str, history: list[dict], max_tokens: int = CHAT_AI_MAX_TOKENS) -> str | None:
     msgs = [{"role": "system", "content": system}]
     msgs += [{"role": m["role"], "content": m["text"]} for m in history]
     headers = {"Authorization": f"Bearer {CHAT_AI_KEY}"} if CHAT_AI_KEY else {}
     try:
         r = httpx.post(f"{CHAT_AI_URL}/chat/completions", headers=headers, timeout=90,
-                       json={"model": CHAT_AI_MODEL, "messages": msgs, "max_tokens": CHAT_AI_MAX_TOKENS,
+                       json={"model": CHAT_AI_MODEL, "messages": msgs, "max_tokens": max_tokens,
                              **CHAT_AI_EXTRA})
         r.raise_for_status()
         return r.json()["choices"][0]["message"]["content"] or ""
@@ -339,7 +339,7 @@ def _openai_style(system: str, history: list[dict]) -> str | None:
         return None
 
 
-def _bedrock_converse(system: str, history: list[dict]) -> str | None:
+def _bedrock_converse(system: str, history: list[dict], max_tokens: int = CHAT_AI_MAX_TOKENS) -> str | None:
     global _bedrock
     import boto3
     from botocore.config import Config
@@ -360,7 +360,7 @@ def _bedrock_converse(system: str, history: list[dict]) -> str | None:
             _bedrock = boto3.client("bedrock-runtime", region_name=CHAT_AI_REGION,
                                     config=Config(read_timeout=30, retries={"max_attempts": 2}))
         r = _bedrock.converse(modelId=CHAT_AI_MODEL, system=[{"text": system}], messages=msgs,
-                              inferenceConfig={"maxTokens": CHAT_AI_MAX_TOKENS})
+                              inferenceConfig={"maxTokens": max_tokens})
         return "".join(c.get("text", "") for c in r["output"]["message"]["content"])
     except (BotoCoreError, ClientError, KeyError):
         return None
@@ -407,6 +407,45 @@ def ask(site: str, chat_id: str, history: list[dict], context: str = "") -> str 
     _site_chats[chat_id] = _site_chats.get(chat_id, 0) + 1
     system = _site_prompt(site) + (f"\n\nThis visitor's move so far: {context}" if context else "")
     return _ask_model(system, history)
+
+
+UNDERSTAND_KINDS = ("choice", "place", "date")
+
+
+def understand(chat_id: str, question: str, text: str, kind: str, choices: dict[str, str],
+               country: str = "") -> str | None:
+    """Read an answer the browser chat's own rules couldn't, as one short value the page then
+    checks with those same rules: a code from choices ({"partial": "Part of a home"}), a city
+    name, or a YYYY-MM-DD date. None when unsure, over the limits, or the model failed; the
+    page then asks the visitor to tap an option. Counts like an AI answer (per chat and per day)."""
+    if _site_chats.get(chat_id, 0) >= CHAT_AI_PER_CHAT or not _use_daily_answer():
+        return None
+    _site_chats[chat_id] = _site_chats.get(chat_id, 0) + 1
+    if kind == "choice":
+        form = "exactly one of these codes:\n" + "\n".join(f"- {code}: {meaning}" for code, meaning in choices.items())
+    elif kind == "place":
+        form = (f"just the name of the city{' in ' + country if country else ''}, in its usual English spelling "
+                "(for example: Kochi)")
+    else:
+        today = datetime.now(SINGAPORE).date()
+        form = (f"the date as YYYY-MM-DD. Today is {today.isoformat()} and the date must be in the future. "
+                "If they give only a month or a vague time (for example 'next month' or 'mid December'), reply unsure")
+    system = ("You read one answer in a moving company's booking chat and rewrite it in a fixed form. "
+              f'The visitor was asked: "{question}"\n'
+              f"Reply with {form}.\n"
+              "Reply with that value only: no other words, no punctuation. If the answer doesn't clearly fit, "
+              "or it is a question rather than an answer, reply exactly: unsure")
+    ask = _bedrock_converse if CHAT_AI_PROVIDER == "bedrock" else _openai_style
+    out = ask(system, [{"role": "user", "text": text}], max_tokens=20)
+    out = re.sub(r"<think>.*?</think>", "", out or "", flags=re.S).strip().strip(".\"'").strip()
+    if kind == "choice":
+        return out if out in choices else None
+    if kind == "place":
+        return out if re.fullmatch(r"[^\W\d_][^\W\d_ .'-]*(?:[ .'-]+[^\W\d_]+){0,3}", out) and out.lower() != "unsure" else None
+    try:
+        return out if date.fromisoformat(out) > datetime.now(SINGAPORE).date() else None
+    except ValueError:
+        return None
 
 
 def warm() -> None:

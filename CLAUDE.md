@@ -66,6 +66,10 @@ Phone ──HTTPS──► instant-booking.moversly.com  (DNS: client's Route 53
   Each site has its own instructions file `ai/survey/sites/<site>.txt` (a `CUSTOMS: singapore export,
   india import` line pulls in our customs facts). Same model and limits; the daily cap is shared.
   Nothing is stored. A new country page = a new `sites/<name>.txt` + deploy.
+  `POST /ai/chat/understand` (2026-11-03): when the page's own keyword rules can't read a typed answer on
+  from / to / what you're moving / date (never name, email, phone), the AI rewrites it as one value (choice code,
+  city name or YYYY-MM-DD; max 20 tokens, "unsure" allowed), the server checks it, and the page runs it through
+  its rules again and shows "Got it: … / Not right? Change it". Counts toward the same per-chat and daily limits.
 - **Country page prices** come from the sales team's Google Sheets: `GET /ai/prices?route=india&city=…&cft=…`
   (`ai/survey/prices.py`). One sheet per route, one tab per city "Singapore to <City>"; rows found by label
   ("Line Item", "Volume in CFT", "Quote Amount (SGD)"); cached 1 hour. At 351–600 CFT both Console (shared,

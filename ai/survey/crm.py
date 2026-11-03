@@ -4,6 +4,9 @@
     GET  /chat/{id}             the conversation so far (to continue after a reload)
     POST /chat/ask              {site, chat_id, messages, context?} -> {answer}: one free question
                                 from a country page whose chat runs in the browser (sites/<site>.txt)
+    POST /chat/understand       {site, chat_id, question, text, kind, choices?, country?} -> {answer}:
+                                an answer the page's own rules couldn't read, as a choice code,
+                                city name or date (null when unsure); see chat.understand
     POST /leads                 the homepage form -> {lead_id}
     POST /leads/{id}/survey     {items, volume_ft3} once the visitor reaches the summary
     GET  /admin/leads           all leads           (header X-Admin-Password)
@@ -40,6 +43,16 @@ class AskIn(BaseModel):
     chat_id: str = Field(min_length=8, max_length=40)
     messages: list[AskMessage] = Field(min_length=1, max_length=8)  # the last few, ending with the question
     context: str = Field("", max_length=300)
+
+
+class UnderstandIn(BaseModel):
+    site: str = Field(max_length=40)
+    chat_id: str = Field(min_length=8, max_length=40)
+    question: str = Field(min_length=1, max_length=200)
+    text: str = Field(min_length=1, max_length=300)
+    kind: Literal["choice", "place", "date"]
+    choices: dict[str, str] = Field(default_factory=dict, max_length=12)
+    country: str = Field("", max_length=40)
 
 
 class LeadIn(BaseModel):
@@ -90,6 +103,18 @@ async def chat_ask(body: AskIn):
         raise HTTPException(422, "The last message must be the visitor's question (up to 500 characters).")
     answer = await run_in_threadpool(chat.ask, body.site, body.chat_id, [m.model_dump() for m in body.messages],
                                      body.context.strip())
+    return {"answer": answer}
+
+
+@router.post("/chat/understand")
+async def chat_understand(body: UnderstandIn):
+    if body.site not in chat.SITES:
+        raise HTTPException(404, "Unknown site.")
+    if body.kind == "choice" and not body.choices:
+        raise HTTPException(422, "A choice needs its choices.")
+    choices = {k[:30]: v[:80] for k, v in body.choices.items()}
+    answer = await run_in_threadpool(chat.understand, body.chat_id, body.question, body.text.strip(), body.kind,
+                                     choices, body.country)
     return {"answer": answer}
 
 
