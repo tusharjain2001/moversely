@@ -10,6 +10,8 @@ lead emails) runs on its own server and sends each video to this worker:
 start it with SURVEY_GPU=modal (see survey/modal_jobs.py).
 
 `Surveyor` starts on demand and shuts down two minutes after the last video.
+`Transcriber` (voice notes from the surveyor app, see survey/transcribe.py) works the
+same way: faster-whisper (MIT) with the Whisper large-v3-turbo model (MIT).
 """
 
 import modal
@@ -87,5 +89,56 @@ class Surveyor:
         except Exception:
             traceback.print_exc()
             return {"error": "Something went wrong while analysing the video."}
+        finally:
+            os.unlink(path)
+
+
+# ── Voice notes to text (surveyor app) ──────────────────────────────────────
+
+WHISPER_MODEL = "large-v3-turbo"
+
+
+def _bake_whisper():
+    """Download the Whisper weights at build time (about 1.6 GB)."""
+    from faster_whisper import download_model
+
+    download_model(WHISPER_MODEL)
+
+
+# CUDA 12 + cuDNN 9 from NVIDIA's image, which faster-whisper's CTranslate2 needs on the GPU.
+whisper_image = (
+    modal.Image.from_registry("nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04", add_python="3.12")
+    .pip_install("faster-whisper==1.1.1")
+    .env({"HF_HOME": "/models/hf"})
+    .run_function(_bake_whisper)
+)
+
+
+@app.cls(image=whisper_image, gpu=GPU, timeout=1200, scaledown_window=120)
+class Transcriber:
+    @modal.enter()
+    def load(self):
+        from faster_whisper import WhisperModel
+
+        self.model = WhisperModel(WHISPER_MODEL, device="cuda", compute_type="float16")
+
+    @modal.method()
+    def transcribe(self, audio: bytes, suffix: str) -> dict:
+        import os
+        import tempfile
+        import traceback
+
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as f:
+            f.write(audio)
+            path = f.name
+        try:
+            # vad_filter skips silences, where Whisper can otherwise invent words.
+            segments, info = self.model.transcribe(path, vad_filter=True, beam_size=5,
+                                                   condition_on_previous_text=False)
+            text = " ".join(s.text.strip() for s in segments).strip()
+            return {"text": text, "language": info.language, "duration": round(info.duration, 1)}
+        except Exception:
+            traceback.print_exc()
+            return {"error": "Couldn't turn this recording into text. Tap Retry."}
         finally:
             os.unlink(path)

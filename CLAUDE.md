@@ -89,6 +89,14 @@ from the sheet's subtotal rows (empty Margin = 0), shown on the India quotation 
   Drive API off, so sheets are listed by id in `PRICE_SHEETS`). Sales update the Freight tab; a new route = share
   the sheet with the robot + add `route=<sheet id>` to `PRICE_SHEETS` + restart.
 
+- **Surveyor app** (2026-11-05, separate project `Desktop\moversly-surveyor-app`, Expo SDK 58 / React Native,
+  Android first): surveyors log in, see their visits, scan rooms with our `/ai/jobs`, edit items, record the
+  discussion, submit; no pricing for now. Login / visits / saving come from the tech team's API (not ready:
+  sample data, see that project's `docs/API-NEEDED.md`). Voice notes use `POST /ai/transcribe` +
+  `GET /ai/transcribe/{id}` (`ai/survey/transcribe.py`): audio goes to the Modal class `Transcriber`
+  (faster-whisper, MIT; model large-v3-turbo, MIT; T4; VAD skips silences), nothing is stored, job ids are kept
+  in memory for a day. Needs SURVEY_GPU=modal (else 503). **Not deployed yet** (needs `modal deploy` + update.sh).
+
 ### AI models (all free for commercial use)
 
 | Step | Model |
