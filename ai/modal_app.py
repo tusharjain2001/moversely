@@ -97,20 +97,17 @@ class Surveyor:
 
 WHISPER_MODEL = "large-v3-turbo"
 
-
-def _bake_whisper():
-    """Download the Whisper weights at build time (about 1.6 GB)."""
-    from faster_whisper import download_model
-
-    download_model(WHISPER_MODEL)
-
-
 # CUDA 12 + cuDNN 9 from NVIDIA's image, which faster-whisper's CTranslate2 needs on the GPU.
+# The weights (about 1.6 GB) are downloaded at build time with a plain command: a run_function
+# step would import this file, which needs the `survey` folder. That folder is added last and
+# not copied, so code changes don't download the model again.
 whisper_image = (
     modal.Image.from_registry("nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04", add_python="3.12")
-    .pip_install("faster-whisper==1.1.1")
+    # 1.1.1 imports requests but doesn't list it; av 16+ dropped an option (metadata_errors) it uses to read audio.
+    .pip_install("faster-whisper==1.1.1", "requests", "av==15.1.0")
     .env({"HF_HOME": "/models/hf"})
-    .run_function(_bake_whisper)
+    .run_commands(f"python -c \"from faster_whisper import download_model; download_model('{WHISPER_MODEL}')\"")
+    .add_local_python_source("survey", ignore=["**/__pycache__/**"])
 )
 
 
