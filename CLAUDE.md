@@ -76,11 +76,18 @@ Phone ──HTTPS──► instant-booking.moversly.com  (DNS: client's Route 53
   slower) and 20' FCL (own container, faster) fit: the response lists both in `options` and the customer
   chooses (sales confirmed 2026-10-29). Each option has a `breakdown` {origin, freight, destination, margin}
 from the sheet's subtotal rows (empty Margin = 0), shown on the India quotation (2026-10-30).
-  **Port tab** (2026-11-02): "Singapore to India (POE: Chennai)" prices Chennai and, from its "Chennai to Other
-  Cities" list, ~60 more cities = Chennai price + that city's extra charge per band (Console only; FCL = Chennai
-  price), shown as an "Inland transport" line (`breakdown.inland`, `via`). A city's own tab (Mumbai, Bangalore)
-  comes before the list; the port tab beats the old "Singapore to Chennai" tab. City names are matched letters-only
-  with aliases (`CITY_NAMES` in prices.py, e.g. Delhi NCR / New Delhi, Mysore / Mysuru). Tabs are read to row 500.
+  **Port tab and city lists** (2026-11-02, rules from sales 2026-11-10): "Singapore to India (POE: Chennai)" prices
+  Chennai; it and the Mumbai (POE Nhava Sheva) and Bangalore (POE ICD Bangalore) tabs each have a "<Port> to Other
+  Cities" list = that tab's price + the city's inland charge per band, shown as an "Inland transport" line
+  (`breakdown.inland`, `via`). A number = shipped via that port; "#N/A" or empty = not. **Console always via
+  Chennai** (Console columns in other tabs, hidden in Mumbai/Bangalore, are not used). **FCL** from the city's own
+  tab, else from every list with a number ("nearest port": Delhi/Pune via Mumbai, Mysuru via Bangalore); a city in
+  two lists (Chittoor) gets both as options. Each option has `id` (type, or "<type> via <port>"), `port`, `via`, and
+  the page/payment choose by `id`. A tab is filed under its title city; only a "(POE: X)" tab under its port. Names
+  match letters-only with aliases (`CITY_NAMES`) and each name inside "Tumakuru (Tumkur)" / "Hubballi-Dharwad"; a
+  city listed twice keeps the higher charge (Hubballi, until sales confirm). No price → reason "city" (the page
+  says "no online price for this city yet"); "volume" only above the biggest band (2100 CFT). Tabs read to row 500.
+  Sheet issue reported 2026-11-10: Mumbai list 40' FCL 1001–1500 inland charges all include ~SGD 1,146 extra.
   **Payment amount is set by our server:** `POST /ai/payment` (`ai/survey/payments.py`) gets only the chosen option,
   looks the price up in the sheet again (409 `price_changed` if it differs from what the page showed), then calls
   api.moversly.com `create-pricing-with-split` + `survey-app/payment-intent` server to server and returns only the
@@ -95,7 +102,7 @@ from the sheet's subtotal rows (empty Margin = 0), shown on the India quotation 
   sample data, see that project's `docs/API-NEEDED.md`). Voice notes use `POST /ai/transcribe` +
   `GET /ai/transcribe/{id}` (`ai/survey/transcribe.py`): audio goes to the Modal class `Transcriber`
   (faster-whisper, MIT; model large-v3-turbo, MIT; T4; VAD skips silences), nothing is stored, job ids are kept
-  in memory for a day. Needs SURVEY_GPU=modal (else 503). **Not deployed yet** (needs `modal deploy` + update.sh).
+  in memory for a day. Needs SURVEY_GPU=modal (else 503). **Live since 2026-11-05**: ~9 s per short note warm, ~15 s after idle. Whisper image pins `av==15.1.0` (av 16+ dropped `metadata_errors`, which faster-whisper uses) and adds `requests`.
 
 ### AI models (all free for commercial use)
 

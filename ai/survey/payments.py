@@ -1,12 +1,13 @@
 """Payments for the country pages, with the amount set by this server, not the browser.
 
-    POST /payment {order_id, route, origin, city, cft, type, price, email, name, origin_port, destination_port}
+    POST /payment {order_id, route, origin, city, cft, type, option, price, email, name, origin_port, destination_port}
         -> {client_secret, price, currency}
         409 {code: "price_changed", price, quote}  the sheet price changed since the quotation was shown
         409 {code: "no_price"}                     this option has no online price any more
 
-The browser says which option the customer chose (type, e.g. "Console") and the price it
-showed; it never sets the amount. The price is looked up in the sales sheet again
+The browser says which option the customer chose (option = the option's id, e.g. "20' FCL via
+ICD Bangalore"; pages that send only the type, e.g. "Console", get the cheapest option of that
+type) and the price it showed; it never sets the amount. The price is looked up in the sales sheet again
 (prices.py), saved on the Moversly order (create-pricing-with-split) and a Stripe payment is
 opened for it (survey-app/payment-intent), both server to server with the same bodies the
 Malaysia page sends. The browser gets only the Stripe client secret.
@@ -38,6 +39,7 @@ class PaymentIn(BaseModel):
     city: str = Field(max_length=80)
     cft: float = Field(gt=0, le=100000)
     type: str = Field(max_length=20)
+    option: str = Field("", max_length=80)  # the chosen option's id from GET /prices
     price: float | None = None  # the price the customer saw
     email: str = Field(max_length=200)
     name: str = Field(max_length=120)
@@ -97,7 +99,9 @@ async def create_payment(p: PaymentIn):
         quote = await run_in_threadpool(prices.price, p.route, p.origin, p.city, p.cft)
     except Exception:
         raise HTTPException(503, "Prices are not available right now. Please try again shortly.")
-    option = next((o for o in quote.get("options", []) if o["type"] == p.type), None)
+    options = quote.get("options", [])
+    option = next((o for o in options if p.option and o.get("id") == p.option), None) or next(
+        (o for o in options if o["type"] == p.type), None)
     if not option:
         raise HTTPException(409, {"code": "no_price", "message": "This price is no longer available online."})
     if p.price is not None and round(p.price) != option["price"]:
@@ -109,5 +113,5 @@ async def create_payment(p: PaymentIn):
         secret = None
     if not secret:
         raise HTTPException(502, "We couldn't start the payment. Please try again.")
-    log.info("Payment opened for order %s: %s %s (%s)", p.order_id, quote["currency"], option["price"], p.type)
+    log.info("Payment opened for order %s: %s %s (%s)", p.order_id, quote["currency"], option["price"], option.get("id") or p.type)
     return {"client_secret": secret, "price": option["price"], "currency": quote["currency"]}
