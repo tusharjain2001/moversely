@@ -2,6 +2,8 @@
 
     POST /jobs        multipart: video=<file>, room=<name>   -> {"job_id"}
     GET  /jobs/{id}   -> {"status": queued|running|done|error, "stage", "progress", "result"?, "error"?}
+                         each result item also has "extra_ft3": the packing allowance per item
+                         (SURVEY_ITEM_EXTRA_FT3, default 2) that the surveyor app adds to its volume
     GET  /catalog     -> the item catalog (for manual "Add item")
     GET  /health
     plus chat, leads and admin endpoints (see crm.py), prices (see prices.py), payments (see payments.py)
@@ -26,6 +28,10 @@ from .transcribe import router as transcribe_router
 
 MAX_UPLOAD_MB = int(os.environ.get("SURVEY_MAX_UPLOAD_MB", 500))
 VIDEO_TYPES = ("video/", "application/octet-stream")
+# Client, 2026-11-11: AI volumes looked low, so the surveyor app adds this many cft to every scanned
+# item. Sent as a separate field: dims_m and volume_ft3 stay as measured, so the websites (which
+# ignore the field) keep their volumes and prices.
+ITEM_EXTRA_FT3 = float(os.environ.get("SURVEY_ITEM_EXTRA_FT3", "2"))
 
 
 class JobBackend(Protocol):
@@ -68,6 +74,10 @@ def create_app(backend: JobBackend) -> FastAPI:
         status = backend.status(job_id)
         if status is None:
             raise HTTPException(404, "Unknown job.")
+        result = status.get("result")
+        if isinstance(result, dict) and isinstance(result.get("items"), list):
+            items = [{**it, "extra_ft3": ITEM_EXTRA_FT3} for it in result["items"]]
+            status = {**status, "result": {**result, "items": items}}
         return status
 
     return app

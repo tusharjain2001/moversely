@@ -102,7 +102,11 @@ from the sheet's subtotal rows (empty Margin = 0), shown on the India quotation 
   sample data, see that project's `docs/API-NEEDED.md`). Voice notes use `POST /ai/transcribe` +
   `GET /ai/transcribe/{id}` (`ai/survey/transcribe.py`): audio goes to the Modal class `Transcriber`
   (faster-whisper, MIT; model large-v3-turbo, MIT; T4; VAD skips silences), nothing is stored, job ids are kept
-  in memory for a day. Needs SURVEY_GPU=modal (else 503). **Live since 2026-11-05**: ~9 s per short note warm, ~15 s after idle. Whisper image pins `av==15.1.0` (av 16+ dropped `metadata_errors`, which faster-whisper uses) and adds `requests`.
+  in memory for a day. Needs SURVEY_GPU=modal (else 503).
+  **Packing allowance (client, 2026-11-11):** `GET /ai/jobs/{id}` adds `extra_ft3` (= `SURVEY_ITEM_EXTRA_FT3`,
+  default 2) to every scanned item; only the surveyor app adds it to the item's cft (dims and `volume_ft3` stay
+  as measured, so website volumes and India prices don't change). In the app the surveyor can also type an
+  item's cft directly (`typedFt3` overrides size + allowance) and add items by hand at any step. **Live since 2026-11-05**: ~9 s per short note warm, ~15 s after idle. Whisper image pins `av==15.1.0` (av 16+ dropped `metadata_errors`, which faster-whisper uses) and adds `requests`.
 
 ### AI models (all free for commercial use)
 
