@@ -377,7 +377,8 @@ def _ask_model(system: str, history: list[dict]) -> str | None:
     # Last line of defence: a small model sometimes invents prices or shipping
     # times. ("Owned for 12 months" is a real customs rule, so only durations
     # next to shipping words count.)
-    invented_price = re.search(r"[$€£₹]\s?\d|\b\d+\s*(usd|dollars|rupees|euros)\b", text, re.I)
+    invented_price = re.search(r"[$€£₹]\s?\d|\b(usd|sgd|aud|inr|rs\.?)\s?\d|\b\d+\s*(usd|sgd|aud|dollars|rupees|euros)\b",
+                               text, re.I)
     invented_time = (re.search(r"\b(take|takes|taking|arrive|arrives|arrival|delivery|deliver|transit|shipping time)\b",
                                text, re.I)
                      and re.search(r"\b\d+\s*(-|to)?\s*\d*\s*(days?|weeks?)\b", text, re.I))

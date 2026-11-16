@@ -88,6 +88,14 @@ from the sheet's subtotal rows (empty Margin = 0), shown on the India quotation 
   city listed twice keeps the higher charge (Hubballi, until sales confirm). No price → reason "city" (the page
   says "no online price for this city yet"); "volume" only above the biggest band (2100 CFT). Tabs read to row 500.
   Sheet issue reported 2026-11-10: Mumbai list 40' FCL 1001–1500 inland charges all include ~SGD 1,146 extra.
+  **Australia** (2026-11-16, site `Desktop\moving-to-australia`, chat `sites/australia.txt`): sheet "Singapore to
+  Australia Export" (from Muthu; Google Sheet shared with the robot 2026-11-16, read test OK and prices match his xlsx;
+  until `australia=<id>` is in `PRICE_SHEETS` on EC2 the page offers a quote request). Console only for now: tab "Singapore to Australia Console" (POE: Sydney) + "Sydney to
+  Other Cities" list. Its title names no city, so a tab now also prices its POE port city when no tab is named after
+  it (India gains only the harmless keys nhavasheva / icdbangalore; India prices checked unchanged). Aliases for the
+  sheet typos Hobrat / Alice Spings. The FCL tab (destination charges per city, not in the Quote Amount) is not
+  priced: sales will rework it, then the code may need changes. The page maps a Google-picked suburb to the nearest
+  sheet city within 50 km (to confirm with sales).
   **Payment amount is set by our server:** `POST /ai/payment` (`ai/survey/payments.py`) gets only the chosen option,
   looks the price up in the sheet again (409 `price_changed` if it differs from what the page showed), then calls
   api.moversly.com `create-pricing-with-split` + `survey-app/payment-intent` server to server and returns only the

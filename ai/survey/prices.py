@@ -27,7 +27,9 @@ Sheet layout. One sheet per route. A city tab "<Origin> to <City>" prices its ci
 "Line Item" gives Console / 20' FCL / 40' FCL, the row "Volume in CFT" the bands ("Upto 50 CFT",
 "351 - 400 CFT"), the row "Quote Amount (SGD)" the price and "POE: <port>" the port. A port tab
 "<Origin> to <Country> (POE: <Port>)", e.g. "Singapore to India (POE: Chennai)", prices its port city
-the same way. Any of these tabs can have, below a row "<Port> to Other Cities", one row per city
+the same way. Any tab also prices its "POE:" port city when no tab is named after that city, e.g.
+"Singapore to Australia Console" (POE: Sydney, Australia) prices Sydney, but isn't a port tab.
+Any of these tabs can have, below a row "<Port> to Other Cities", one row per city
 with the inland charge per band column: a number = the tab's price plus that charge; empty or
 "#N/A" = not shipped via this tab's port in that band. "Tumakuru (Tumkur)", "Hubballi-Dharwad" or
 "Hampi / Hosapete" match each name inside them (a whole row name comes first); a city listed twice
@@ -86,6 +88,8 @@ CITY_NAMES = [  # spellings of one city (letters only); the first is the one pri
     ("kalaburagi", "gulbarga"),
     ("hosapete", "hospet"),
     ("chikmagalur", "chikkamagaluru"),
+    ("hobart", "hobrat"),  # Australia sheet typos, 2026-11-16
+    ("alicesprings", "alicespings"),
 ]
 _CANON = {name: names[0] for names in CITY_NAMES for name in names}
 SHIPMENT = {
@@ -200,7 +204,6 @@ def _parse_tab(title: str, rows: list[list]) -> tuple[str, str, dict, dict] | No
 
 
 def _read_sheet(sheet_id: str) -> dict:
-    """{own: {(origin, city): tab}, lists: [(origin, tab, extras)], origins, port_tab_origins, biggest}"""
     headers = {"Authorization": f"Bearer {_token()}"}
     with httpx.Client(timeout=20, headers=headers) as client:
         meta = client.get(f"{SHEETS_API}/{sheet_id}", params={"fields": "sheets.properties.title"})
@@ -209,12 +212,19 @@ def _read_sheet(sheet_id: str) -> dict:
         values = client.get(f"{SHEETS_API}/{sheet_id}/values:batchGet",
                             params={"ranges": [f"'{t}'!A1:AZ500" for t in titles], "valueRenderOption": "UNFORMATTED_VALUE"})
         values.raise_for_status()
-    own, lists, origins, port_tab_origins, biggest = {}, [], set(), set(), 0
-    for title, vr in zip(titles, values.json()["valueRanges"]):
-        parsed = _parse_tab(title, vr.get("values", []))
+    return _index(zip(titles, (vr.get("values", []) for vr in values.json()["valueRanges"])))
+
+
+def _index(tabs) -> dict:
+    """{own: {(origin, city): tab}, lists: [(origin, tab, extras)], origins, port_tab_origins, biggest}
+    from (title, rows) pairs."""
+    own, lists, origins, port_tab_origins, biggest, parsed_tabs = {}, [], set(), set(), 0, []
+    for title, rows in tabs:
+        parsed = _parse_tab(title, rows)
         if not parsed:
             continue
         origin, city, tab, extras = parsed
+        parsed_tabs.append((origin, tab))
         origins.add(origin)
         if tab["port_tab"]:
             port_tab_origins.add(origin)
@@ -223,6 +233,12 @@ def _read_sheet(sheet_id: str) -> dict:
         if extras:
             lists.append((origin, tab, extras))
         biggest = max([biggest, *(b["range"][1] for b in tab["bands"])])
+    # A tab also prices its "POE:" port city when no tab is filed there by its title: the Australia
+    # tab "Singapore to Australia Console" (POE: Sydney, Australia) prices Sydney.
+    for origin, tab in parsed_tabs:
+        port_key = _city_key(tab["port"])
+        if port_key:
+            own.setdefault((origin, port_key), tab)
     return {"own": own, "lists": lists, "origins": origins, "port_tab_origins": port_tab_origins, "biggest": biggest}
 
 
